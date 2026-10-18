@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Диярбек Ашурбеков — Веб-әзірлеуші</title>
-<meta name="description" content="Бизнеске арналған премиум веб-сайттар. 13 жоба. 24 сағатта дайын.">
+<meta name="description" content="Бизнеске арналған премиум веб-сайттар. 12 жоба. 24 сағатта дайын.">
 <meta name="author" content="Диярбек Ашурбеков">
 <meta property="og:title" content="Диярбек Ашурбеков — Веб-әзірлеуші">
 <meta property="og:description" content="Бизнеске арналған премиум веб-сайттар.">
@@ -116,9 +116,6 @@ header{position:fixed;top:0;left:0;width:100%;z-index:100;padding:22px 0;mix-ble
 .shot{display:block;position:relative;overflow:hidden;border-radius:16px;background:#e6e1d6;aspect-ratio:16/10}
 .card.wide .shot{aspect-ratio:21/9}
 .shot img{width:100%;height:100%;object-fit:cover;transition:transform 1.2s var(--ease)}
-.shot iframe{position:absolute;top:0;left:0;width:1440px;height:900px;border:0;transform-origin:0 0;transform:scale(.3);pointer-events:none;background:#fff;opacity:0;transition:opacity .9s var(--ease)}
-.shot iframe.ready{opacity:1}
-.ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
 .card:hover .shot img{transform:scale(1.05)}
 .go{position:absolute;right:16px;bottom:16px;width:52px;height:52px;border-radius:50%;background:var(--gold);color:var(--dark);display:flex;align-items:center;justify-content:center;font-size:1.1rem;transform:scale(0) rotate(-45deg);transition:transform .5s var(--ease);z-index:2}
 .card:hover .go{transform:scale(1) rotate(0)}
@@ -181,6 +178,13 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 .wa{position:fixed;right:22px;bottom:22px;z-index:90;width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--dark);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(0,0,0,.35)}
 
+/* reveal (enabled only when JS runs) */
+.rv{opacity:0;transform:translateY(40px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.card.rv .shot{clip-path:inset(14% 6% 0% 6% round 16px);transition:clip-path 1.2s var(--ease)}
+.card.rv.in .shot{clip-path:inset(0% 0% 0% 0% round 16px)}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.card.rv .shot{clip-path:none}}
+
 @media (max-width:900px){
   .hero-grid{grid-template-columns:1fr}
   .portrait{order:-1;justify-self:center;max-width:320px}
@@ -240,7 +244,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       </div>
       <figure class="portrait" id="portrait">
         <img src="images/diyarbek.webp" alt="Диярбек Ашурбеков" width="1034" height="1740" fetchpriority="high">
-        <figcaption><b>13+</b>орындалған жоба</figcaption>
+        <figcaption><b>12</b>орындалған жоба</figcaption>
       </figure>
     </div>
     <div class="hero-foot">
@@ -259,15 +263,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <!-- MARQUEE -->
 <div class="marquee" aria-hidden="true">
   <div class="track" id="track">
-    <span>DOS Мебель</span><span>Perde Mariam</span><span>INTEKS</span><span>Әсел</span><span>TENDE</span><span>ҚОЖА</span><span>Luxe Furnitura</span><span>La Vida</span><span>Amanat</span><span>Printspace</span><span>LUXE Barber</span><span>Heritage</span>
-    <span>DOS Мебель</span><span>Perde Mariam</span><span>INTEKS</span><span>Әсел</span><span>TENDE</span><span>ҚОЖА</span><span>Luxe Furnitura</span><span>La Vida</span><span>Amanat</span><span>Printspace</span><span>LUXE Barber</span><span>Heritage</span>
+    <span>DOS Мебель</span><span>Perde Mariam</span><span>INTEKS</span><span>Әсел</span><span>TENDE</span><span>Luxe Furnitura</span><span>La Vida</span><span>Amanat</span><span>Printspace</span><span>LUXE Barber</span><span>Heritage</span>
+    <span>DOS Мебель</span><span>Perde Mariam</span><span>INTEKS</span><span>Әсел</span><span>TENDE</span><span>Luxe Furnitura</span><span>La Vida</span><span>Amanat</span><span>Printspace</span><span>LUXE Barber</span><span>Heritage</span>
   </div>
 </div>
 
 <!-- STATS -->
 <div class="wrap">
   <div class="stats" data-stagger>
-    <div class="stat"><b><span data-count="13">13</span><i>+</i></b><span>жоба</span></div>
+    <div class="stat"><b><span data-count="12">12</span><i></i></b><span>жоба</span></div>
     <div class="stat"><b><span data-count="24">24</span><i>сағ</i></b><span>дайындау</span></div>
     <div class="stat"><b><span data-count="100">100</span><i>%</i></b><span>мобильді</span></div>
     <div class="stat"><b><span data-count="20">20</span><i>k ₸</i></b><span>бастап</span></div>
@@ -278,7 +282,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <section class="light" id="projects">
   <div class="wrap">
     <div class="head" data-a>
-      <h2>Жобалар<sup>13</sup></h2>
+      <h2>Жобалар<sup>12</sup></h2>
       <div class="filters">
         <button class="chip on" data-f="all">Барлығы</button>
         <button class="chip" data-f="biz">Бизнес</button>
@@ -292,19 +296,15 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         <span class="info"><h3>DOS Мебель</h3><span>Жиһаз фабрикасы · Алматы</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/perde.mariam/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Жаңа</span><iframe data-src="https://diyorbekashurbekov.github.io/perde.mariam/" title="Perde Mariam" tabindex="-1" scrolling="no"></iframe><span class="ph">Perde Mariam</span><span class="go">↗</span></span>
+        <span class="shot"><span class="tag">Жаңа</span><img src="images/shot_perde_mariam.webp" alt="Perde Mariam" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>Perde Mariam</h3><span>Перде салоны · Астана</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/tende.jalyuzi/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Жаңа</span><iframe data-src="https://diyorbekashurbekov.github.io/tende.jalyuzi/" title="TENDE" tabindex="-1" scrolling="no"></iframe><span class="ph">TENDE</span><span class="go">↗</span></span>
+        <span class="shot"><span class="tag">Жаңа</span><img src="images/shot_tende_jalyuzi.webp" alt="TENDE" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>TENDE</h3><span>Жалюзи каталогы</span></span>
       </a>
-      <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/qozha-shashlyk/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Жаңа</span><iframe data-src="https://diyorbekashurbekov.github.io/qozha-shashlyk/" title="ҚОЖА" tabindex="-1" scrolling="no"></iframe><span class="ph">ҚОЖА</span><span class="go">↗</span></span>
-        <span class="info"><h3>ҚОЖА</h3><span>Мейрамхана · Түркістан</span></span>
-      </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/luxe-furnitura/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Жаңа</span><iframe data-src="https://diyorbekashurbekov.github.io/luxe-furnitura/" title="Luxe Furnitura" tabindex="-1" scrolling="no"></iframe><span class="ph">Luxe Furnitura</span><span class="go">↗</span></span>
+        <span class="shot"><span class="tag">Жаңа</span><img src="images/shot_luxe-furnitura.webp" alt="Luxe Furnitura" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>Luxe Furnitura</h3><span>Онлайн дүкен</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/shtory_assel/" target="_blank" rel="noopener">
@@ -316,27 +316,27 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         <span class="info"><h3>INTEKS</h3><span>Салон штор · 3 қала</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/la_vida.kz/" target="_blank" rel="noopener">
-        <span class="shot"><iframe data-src="https://diyorbekashurbekov.github.io/la_vida.kz/" title="La Vida" tabindex="-1" scrolling="no"></iframe><span class="ph">La Vida</span><span class="go">↗</span></span>
+        <span class="shot"><img src="images/shot_la_vida_kz.webp" alt="La Vida" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>La Vida Mebel</h3><span>Жиһаз · Астана</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/amanat_interior/" target="_blank" rel="noopener">
-        <span class="shot"><iframe data-src="https://diyorbekashurbekov.github.io/amanat_interior/" title="Amanat Interior" tabindex="-1" scrolling="no"></iframe><span class="ph">Amanat</span><span class="go">↗</span></span>
+        <span class="shot"><img src="images/shot_amanat_interior.webp" alt="Amanat Interior" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>Amanat Interior</h3><span>Интерьер · Астана</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/printspace-kz/" target="_blank" rel="noopener">
-        <span class="shot"><iframe data-src="https://diyorbekashurbekov.github.io/printspace-kz/" title="Printspace" tabindex="-1" scrolling="no"></iframe><span class="ph">Printspace</span><span class="go">↗</span></span>
+        <span class="shot"><img src="images/shot_printspace-kz.webp" alt="Printspace" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>Printspace.kz</h3><span>Полиграфия · Түркістан</span></span>
       </a>
       <a class="card" data-c="biz" href="https://diyorbekashurbekov.github.io/luxe-barbershop-kentau/" target="_blank" rel="noopener">
-        <span class="shot"><iframe data-src="https://diyorbekashurbekov.github.io/luxe-barbershop-kentau/" title="LUXE Barbershop" tabindex="-1" scrolling="no"></iframe><span class="ph">LUXE</span><span class="go">↗</span></span>
+        <span class="shot"><img src="images/shot_luxe-barbershop-kentau.webp" alt="LUXE Barbershop" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>LUXE Barbershop</h3><span>Барбершоп · Кентау</span></span>
       </a>
       <a class="card" data-c="own" href="https://diyorbekashurbekov.github.io/qazaqstan-heritage/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Авторлық</span><iframe data-src="https://diyorbekashurbekov.github.io/qazaqstan-heritage/" title="Qazaqstan Heritage" tabindex="-1" scrolling="no"></iframe><span class="ph">Heritage</span><span class="go">↗</span></span>
+        <span class="shot"><span class="tag">Авторлық</span><img src="images/shot_qazaqstan-heritage.webp" alt="Qazaqstan Heritage" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>Qazaqstan Heritage</h3><span>Интерактивті карта</span></span>
       </a>
       <a class="card" data-c="own" href="https://diyorbekashurbekov.github.io/iq-alany/" target="_blank" rel="noopener">
-        <span class="shot"><span class="tag">Авторлық</span><iframe data-src="https://diyorbekashurbekov.github.io/iq-alany/" title="IQ Alaңы" tabindex="-1" scrolling="no"></iframe><span class="ph">IQ Alaңы</span><span class="go">↗</span></span>
+        <span class="shot"><span class="tag">Авторлық</span><img src="images/shot_iq-alany.webp" alt="IQ Alaңы" loading="lazy" width="1200" height="750"><span class="go">↗</span></span>
         <span class="info"><h3>IQ Alаңы</h3><span>Білім ойыны</span></span>
       </a>
     </div>
@@ -431,26 +431,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <script src="https://cdn.jsdelivr.net/npm/motion@11.18.2/dist/motion.js"></script>
 <script>
-/* live previews: fit + lazy load */
-function fitShots(){
-  document.querySelectorAll('.shot iframe').forEach(function(f){
-    var b=f.parentElement,w=b.clientWidth,h=b.clientHeight;if(!w)return;
-    var s=w/1440;f.style.height=Math.round(h/s)+'px';f.style.transform='scale('+s+')';
-  });
-}
-addEventListener('resize',fitShots,{passive:true});
-fitShots();
-var fio=new IntersectionObserver(function(es){es.forEach(function(e){
-  if(!e.isIntersecting)return;var f=e.target;f.src=f.dataset.src;
-  f.addEventListener('load',function(){fitShots();f.classList.add('ready')});fio.unobserve(f);
-})},{rootMargin:'300px'});
-document.querySelectorAll('iframe[data-src]').forEach(function(f){fio.observe(f)});
-
 /* filters */
 document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click',function(){
   document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});c.classList.add('on');
   document.querySelectorAll('#pgrid .card').forEach(function(k){k.classList.toggle('hide',c.dataset.f!=='all'&&k.dataset.c!==c.dataset.f)});
-  fitShots();
 })});
 
 /* calculator */
@@ -500,23 +484,20 @@ document.getElementById('order').addEventListener('click',function(){
     track.style.transform='translate3d('+x+'px,0,0)';requestAnimationFrame(loop);
   })();
 
-  /* reveals */
-  var vm={margin:'0px 0px -10% 0px'};
-  document.querySelectorAll('[data-a]').forEach(function(el){
-    el.style.opacity=0;
-    inView(el,function(){animate(el,{opacity:[0,1],y:[40,0]},{duration:1,ease:ease})},vm);
-  });
+  /* reveals: CSS-driven, so content always ends visible */
+  var items=[].slice.call(document.querySelectorAll('[data-a],.card'));
   document.querySelectorAll('[data-stagger]').forEach(function(g){
-    var kids=[].slice.call(g.children);kids.forEach(function(k){k.style.opacity=0});
-    inView(g,function(){animate(kids,{opacity:[0,1],y:[40,0]},{duration:.9,delay:stagger(.08),ease:ease})},vm);
+    [].forEach.call(g.children,function(k,i){k.style.transitionDelay=(i*.08)+'s';items.push(k)});
   });
-  document.querySelectorAll('.card').forEach(function(c){
-    c.style.opacity=0;
-    inView(c,function(){
-      animate(c,{opacity:[0,1],y:[60,0]},{duration:1,ease:ease});
-      animate(c.querySelector('.shot'),{clipPath:['inset(18% 8% 0% 8% round 16px)','inset(0% 0% 0% 0% round 16px)']},{duration:1.2,ease:ease});
-    },{margin:'0px 0px -8% 0px'});
-  });
+  items.forEach(function(el){el.classList.add('rv')});
+  var rio=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}
+  })},{rootMargin:'0px 0px -8% 0px'});
+  items.forEach(function(el){rio.observe(el)});
+  /* safety net: anything still hidden after 2.5s gets shown */
+  setTimeout(function(){items.forEach(function(el){
+    if(el.getBoundingClientRect().top<innerHeight)el.classList.add('in');
+  })},2500);
 
   /* counters */
   document.querySelectorAll('[data-count]').forEach(function(el){
