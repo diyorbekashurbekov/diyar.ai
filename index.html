@@ -64,15 +64,17 @@ header{position:fixed;top:0;left:0;width:100%;z-index:100;padding:22px 0;mix-ble
 /* HERO */
 .hero{min-height:100svh;display:flex;flex-direction:column;justify-content:flex-end;padding:140px 0 56px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;right:-20%;top:-20%;width:80vw;height:80vw;max-width:1000px;max-height:1000px;background:radial-gradient(circle,rgba(200,164,106,.22),transparent 62%);pointer-events:none}
-.hero h1{font-size:clamp(3.2rem,11.5vw,10.5rem);line-height:.96;position:relative}
+.hero h1{font-size:clamp(3rem,8vw,8rem);line-height:.96;position:relative}
+.hero-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:clamp(24px,4vw,60px);align-items:end}
+.sub{margin-top:28px;max-width:30ch;font-size:clamp(1.05rem,1.6vw,1.3rem);color:var(--dim);line-height:1.5}
+.sub b{color:var(--cream);font-weight:500}
+.portrait{position:relative;margin:0;justify-self:end;width:100%;max-width:400px}
+.portrait::before{content:'';position:absolute;left:6%;right:6%;bottom:0;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 40%,#d9b97f,#8a6f45 70%)}
+.portrait img{position:relative;width:100%;height:auto;-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent)}
+.portrait figcaption{position:absolute;left:-8%;bottom:18%;padding:12px 16px;border-radius:14px;background:rgba(15,14,12,.82);border:1px solid var(--faint);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);font-size:.72rem;color:var(--dim);line-height:1.3}
+.portrait figcaption b{display:block;font-family:'Playfair Display',serif;font-weight:400;font-size:1.4rem;color:var(--gold)}
 .line{display:block;overflow:hidden;padding-bottom:.06em}
 .w{display:inline-block;will-change:transform}
-.pill{
-  display:inline-block;vertical-align:middle;position:relative;
-  width:1.55em;height:.78em;margin:0 .12em .1em;border-radius:999px;overflow:hidden;
-  background:radial-gradient(circle at 50% 35%,#e3c48e,#8a6f45 75%);
-}
-.pill img{position:absolute;left:0;right:0;top:6%;width:62%;margin:0 auto;transform-origin:50% 20%}
 .hero-foot{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-end;margin-top:clamp(36px,5vw,64px);padding-top:28px;border-top:1px solid var(--faint)}
 .who{font-size:.86rem;color:var(--dim);line-height:1.7}
 .who b{color:var(--cream);font-weight:500}
@@ -180,6 +182,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .wa{position:fixed;right:22px;bottom:22px;z-index:90;width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--dark);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(0,0,0,.35)}
 
 @media (max-width:900px){
+  .hero-grid{grid-template-columns:1fr}
+  .portrait{order:-1;justify-self:center;max-width:320px}
   .menu{display:none}
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat:nth-child(2){border-right:0}
@@ -192,7 +196,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 }
 @media (max-width:560px){
   .wrap{padding:0 20px}
-  .hero h1{font-size:12.4vw}
+  .hero h1{font-size:15vw}
+  .hero-grid{grid-template-columns:1fr}
+  .portrait{order:-1;justify-self:center;max-width:220px}
+  .portrait figcaption{left:-14%}
   .steps{grid-template-columns:1fr}
   .row{grid-template-columns:36px 1fr;padding:24px 2px}
   .row .p{grid-column:2;margin-top:-12px;color:var(--dim)}
@@ -222,11 +229,20 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <!-- HERO -->
 <section class="hero" id="top">
   <div class="wrap">
-    <h1 id="title">
-      <span class="line"><span class="w">Сайттар</span></span>
-      <span class="line"><span class="w pill" id="pill"><img src="images/diyarbek.webp" alt="Диярбек Ашурбеков"></span> <span class="w">жасаймын</span></span>
-      <span class="line"><span class="w"><em>бизнеске.</em></span></span>
-    </h1>
+    <div class="hero-grid">
+      <div>
+        <h1 id="title">
+          <span class="line"><span class="w">Клиенттер</span></span>
+          <span class="line"><span class="w">сізді</span></span>
+          <span class="line"><span class="w"><em>табады.</em></span></span>
+        </h1>
+        <p class="sub" id="sub">Бизнесіңізге <b>24 сағатта</b> сататын сайт. Шаблонсыз. Телефонда мінсіз.</p>
+      </div>
+      <figure class="portrait" id="portrait">
+        <img src="images/diyarbek.webp" alt="Диярбек Ашурбеков" width="1034" height="1740" fetchpriority="high">
+        <figcaption><b>13+</b>орындалған жоба</figcaption>
+      </figure>
+    </div>
     <div class="hero-foot">
       <div class="who">
         <div class="status"><span class="dot"></span>2 орын бос</div>
@@ -464,13 +480,15 @@ document.getElementById('order').addEventListener('click',function(){
   var animate=Motion.animate,inView=Motion.inView,scroll=Motion.scroll,stagger=Motion.stagger;
   var ease=[.22,1,.36,1];
 
-  /* hero: words rise, photo pill opens */
+  /* hero: words rise, portrait slides up */
   animate('#title .w',{y:['110%','0%']},{duration:1.1,delay:stagger(.09,{startDelay:.15}),ease:ease});
-  animate('#pill',{width:['0em','1.55em'],opacity:[0,1]},{duration:1.1,delay:.55,ease:ease});
-  animate('#pill img',{scale:[1.4,1]},{duration:1.4,delay:.55,ease:ease});
+  animate('#sub',{opacity:[0,1],y:[20,0]},{duration:.9,delay:.6,ease:ease});
+  animate('#portrait img',{y:['30%','0%'],opacity:[0,1]},{duration:1.3,delay:.3,ease:ease});
+  animate('#portrait figcaption',{opacity:[0,1],x:[-20,0]},{duration:.9,delay:1,ease:ease});
   animate('.hero-foot',{opacity:[0,1],y:[24,0]},{duration:.9,delay:.9,ease:ease});
 
   /* hero parallax + progress bar */
+  scroll(animate('#portrait',{y:[0,80]},{ease:'linear'}),{target:document.querySelector('.hero'),offset:['start start','end start']});
   scroll(animate('#title',{y:[0,-120],opacity:[1,.15]},{ease:'linear'}),{target:document.querySelector('.hero'),offset:['start start','end start']});
   scroll(animate('#progress',{scaleX:[0,1]},{ease:'linear'}));
 
