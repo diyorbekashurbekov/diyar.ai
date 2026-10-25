@@ -274,7 +274,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="stat"><b><span data-count="12">12</span><i></i></b><span>жоба</span></div>
     <div class="stat"><b><span data-count="24">24</span><i>сағ</i></b><span>дайындау</span></div>
     <div class="stat"><b><span data-count="100">100</span><i>%</i></b><span>мобильді</span></div>
-    <div class="stat"><b><span data-count="20">20</span><i>k ₸</i></b><span>бастап</span></div>
+    <div class="stat"><b><span data-count="30">30</span><i>k ₸</i></b><span>бастап</span></div>
   </div>
 </div>
 
@@ -348,7 +348,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   <div class="wrap">
     <div class="head" data-a><h2>Не <em>жасаймын</em></h2></div>
     <div class="rows" data-stagger>
-      <div class="row"><span class="n">01</span><h3>Landing page</h3><span class="p">20 000 ₸-ден</span></div>
+      <div class="row"><span class="n">01</span><h3>Landing page</h3><span class="p">30 000 ₸-ден</span></div>
       <div class="row"><span class="n">02</span><h3>Корпоративтік сайт</h3><span class="p">35 000 ₸-ден</span></div>
       <div class="row"><span class="n">03</span><h3>Каталог / дүкен</h3><span class="p">50 000 ₸-ден</span></div>
       <div class="row"><span class="n">04</span><h3>Күрделі жоба</h3><span class="p">75 000 ₸-ден</span></div>
@@ -376,7 +376,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     <div class="calc">
       <div data-a>
         <div class="types">
-          <button class="type on" data-v="20000"><span>Landing page</span><span>20 000 ₸</span></button>
+          <button class="type on" data-v="30000"><span>Landing page</span><span>30 000 ₸</span></button>
           <button class="type" data-v="35000"><span>Корпоративтік сайт</span><span>35 000 ₸</span></button>
           <button class="type" data-v="50000"><span>Каталог / дүкен</span><span>50 000 ₸</span></button>
           <button class="type" data-v="75000"><span>Күрделі жоба</span><span>75 000 ₸</span></button>
@@ -388,7 +388,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       </div>
       <div class="total" data-a>
         <small>Жалпы</small>
-        <div class="price" id="price-out">25 000 ₸</div>
+        <div class="price" id="price-out">35 000 ₸</div>
         <button class="btn mag" id="order">Тапсырыс беру <span class="arr">→</span></button>
       </div>
     </div>
@@ -437,7 +437,7 @@ document.querySelectorAll('.chip').forEach(function(c){c.addEventListener('click
 })});
 
 /* calculator */
-var base=20000;
+var base=30000;
 function total(){var t=base;document.querySelectorAll('.add.on').forEach(function(a){t+=+a.dataset.v});return t}
 function fmt(n){return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₸'}
 var out=document.getElementById('price-out'),shown=total();
