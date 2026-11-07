@@ -188,7 +188,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.card.rv .shot{clip-path:none}}
 
 /* ===== 3D SHOWCASE ===== */
-.show{position:relative;height:360vh}
+.show{position:relative;height:620vh}
 .show-pin{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
 .show-pin::before{content:'';position:absolute;left:55%;top:50%;width:70vw;height:70vw;max-width:900px;max-height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(200,164,106,.16),transparent 60%);pointer-events:none}
 .show-grid{position:relative;width:100%;display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(20px,3vw,48px);align-items:center}
@@ -203,7 +203,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .sp-dots{display:flex;gap:6px;margin-top:30px}
 .sp-dots i{width:22px;height:2px;background:var(--faint);transition:background .4s,width .4s var(--ease)}
 .sp-dots i.on{background:var(--gold);width:40px}
-.stage{position:relative;height:min(78svh,720px)}
+.stage{position:relative;height:min(78svh,720px);cursor:pointer}
 .stage img,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .8s var(--ease)}
 .stage canvas{opacity:0}
 .stage.ready canvas{opacity:1}
@@ -768,129 +768,7 @@ document.getElementById('order').addEventListener('click',function(){
 })();
 </script>
 
-<!-- ===== 3D showcase: Three.js loads only when this section is near ===== -->
-<script type="module">
-const sec=document.getElementById('show');
-const P=[
-  /* name, meta, desktop shot (laptop), url slug, real mobile shot (phone) */
-  ['DOS Мебель','Жиһаз фабрикасы · Алматы','dos_mebel_preview.webp','dos-mebel','m_dos-mebel.webp'],
-  ['Perde Mariam','Перде салоны · Астана','shot_perde_mariam.webp','perde.mariam','m_perde-mariam.webp'],
-  ['Luxe Furnitura','Онлайн дүкен','shot_luxe-furnitura.webp','luxe-furnitura','m_luxe-furnitura.webp'],
-  ['Printspace.kz','Полиграфия · Түркістан','shot_printspace-kz.webp','printspace-kz','m_printspace-kz.webp'],
-  ['LUXE Barbershop','Барбершоп · Кентау','shot_luxe-barbershop-kentau.webp','luxe-barbershop-kentau','m_luxe-barbershop.webp'],
-  ['Amanat Interior','Интерьер · Астана','shot_amanat_interior.webp','amanat_interior','m_amanat-interior.webp']
-];
-const $=id=>document.getElementById(id);
-const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
-let prog=0,idx=0,onIndex=null;
-
-/* text side: works even without WebGL */
-function measure(){
-  const r=sec.getBoundingClientRect();
-  prog=clamp(-r.top/(r.height-innerHeight));
-  $('hint').style.opacity=prog>.02?0:1;
-  const i=Math.min(P.length-1,Math.floor(clamp((prog-.14)/.86)*P.length));
-  if(i!==idx){
-    idx=i;const b=$('sp-body');b.classList.add('swap');
-    setTimeout(()=>{const p=P[i];$('sp-name').textContent=p[0];$('sp-meta').textContent=p[1];
-      $('sp-link').href='https://diyorbekashurbekov.github.io/'+p[3]+'/';b.classList.remove('swap')},220);
-    $('sp-i').textContent='0'+(i+1);
-    [...$('sp-dots').children].forEach((d,k)=>d.classList.toggle('on',k===i));
-    onIndex&&onIndex(i);
-  }
-}
-addEventListener('scroll',measure,{passive:true});addEventListener('resize',measure);measure();
-
-const ok=!matchMedia('(prefers-reduced-motion: reduce)').matches&&!(navigator.connection&&navigator.connection.saveData);
-let started=false;
-/* wait until the first screen is fully loaded, then use idle time — hero is never slowed down */
-const whenIdle=f=>{const go=()=>(window.requestIdleCallback||setTimeout)(f,{timeout:1500});document.readyState==='complete'?go():addEventListener('load',go,{once:true})};
-function boot(){if(started||!ok)return;started=true;whenIdle(()=>init().catch(e=>console.warn('3D off:',e)))}
-if(ok){
-  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();boot()}},{rootMargin:'120% 0px'});
-  io.observe(sec);
-  /* backup trigger: plain scroll position */
-  const near=()=>{if(sec.getBoundingClientRect().top<innerHeight*2.2){removeEventListener('scroll',near);boot()}};
-  addEventListener('scroll',near,{passive:true});near();
-}
-
-async function init(){
-  const [THREE,{GLTFLoader},{RoomEnvironment},{MeshoptDecoder}]=await Promise.all([
-    import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/environments/RoomEnvironment.js'),
-    import('three/addons/libs/meshopt_decoder.module.js')]);
-  const stage=$('stage'),canvas=$('gl'),mobile=innerWidth<900;
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobile,alpha:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.5:2));
-  renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  const scene=new THREE.Scene();
-  const pm=new THREE.PMREMGenerator(renderer);
-  scene.environment=pm.fromScene(new RoomEnvironment(),.04).texture;
-  scene.environmentIntensity=.55;
-  const key=new THREE.DirectionalLight(0xfff1dd,1.4);key.position.set(-4,6,5);
-  const rim=new THREE.DirectionalLight(0xffc773,3);rim.position.set(5,3,-5);
-  scene.add(key,rim);
-  const cam=new THREE.PerspectiveCamera(28,1,.1,100);
-
-  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/devices.glb');
-  const root=gltf.scene;scene.add(root);
-  const lid=root.getObjectByName('Lid'),phone=root.getObjectByName('Phone');
-  const lapMat=new THREE.MeshBasicMaterial({toneMapped:false,color:0x111111});
-  const phMat=new THREE.MeshBasicMaterial({toneMapped:false,color:0x111111});
-  root.getObjectByName('LaptopScreen').material=lapMat;
-  root.getObjectByName('PhoneScreen').material=phMat;
-  const phBase=phone.position.clone();
-  const center=new THREE.Vector3(.35,.95,0);
-
-  /* screenshots -> textures, cover-cropped on a canvas */
-  const cache={};
-  function tex(file,w,h,left){
-    const k=file+w;if(cache[k])return cache[k];
-    return cache[k]=new Promise(res=>{const im=new Image();im.decoding='async';im.onload=()=>{
-      const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
-      const s=Math.max(w/im.width,h/im.height),dw=im.width*s,dh=im.height*s;
-      g.drawImage(im,left?0:(w-dw)/2,(h-dh)/2,dw,dh);
-      const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=false;
-      t.anisotropy=4;res(t)};im.src='images/'+file});
-  }
-  let flash=0;
-  async function show(i){
-    const [a,b]=await Promise.all([tex(P[i][2],1280,800),tex(P[i][4],540,1170,true)]);
-    if(i!==idx)return;
-    lapMat.map=a;phMat.map=b;lapMat.needsUpdate=phMat.needsUpdate=true;flash=1;
-  }
-  onIndex=show;show(idx);
-  P.forEach((p,i)=>setTimeout(()=>{tex(p[2],1280,800);tex(p[4],540,1170,true)},800+i*300));
-
-  /* size */
-  function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
-  new ResizeObserver(size).observe(stage);size();
-
-  /* pointer parallax (desktop) */
-  let mx=0,my=0,tx=0,ty=0;
-  addEventListener('pointermove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5},{passive:true});
-
-  let visible=true,looping=false,sm=0,first=true;
-  const start=()=>{if(!looping){looping=true;loop()}};
-  new IntersectionObserver(es=>{visible=es[es.length-1].isIntersecting;if(visible)start()}).observe(sec);
-  const ease=t=>1-Math.pow(1-t,3);
-  function loop(){
-    if(!visible){looping=false;return}requestAnimationFrame(loop);
-    sm+=(prog-sm)*.09;mx+=(tx-mx)*.06;my+=(ty-my)*.06;
-    const open=ease(clamp(sm/.14));
-    lid.rotation.set(THREE.MathUtils.lerp(Math.PI/2,-.21,open),0,0);
-    const t=performance.now()/1000;
-    phone.position.set(phBase.x+(1-open)*.7,phBase.y-(1-open)*.35+Math.sin(t*1.4)*.03,phBase.z+(1-open)*.3);
-    const az=.62-sm*.75+mx*.25,el=.42-open*.1-sm*.06+my*.12,d=Math.max(7.6,2.5/(.2493*cam.aspect))-open*.5; /* fit both devices to any screen shape */
-    cam.position.set(center.x+Math.sin(az)*Math.cos(el)*d,center.y+Math.sin(el)*d,center.z+Math.cos(az)*Math.cos(el)*d);
-    cam.lookAt(center);
-    const lum=Math.min(1,open*1.2)*(1-flash*.75);flash*=.9;
-    lapMat.color.setScalar(lapMat.map?lum:.05);phMat.color.setScalar(phMat.map?1-flash*.75:.05);
-    renderer.render(scene,cam);
-    if(first){first=false;stage.classList.add('ready')}
-  }
-  start();
-}
-</script>
+<!-- 3D showcase (Blender model + Three.js) — see js/showcase.js -->
+<script type="module" src="js/showcase.js"></script>
 </body>
 </html>
