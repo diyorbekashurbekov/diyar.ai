@@ -100,7 +100,7 @@ async function init() {
   const key = new THREE.DirectionalLight(0xfff1dd, 1.4); key.position.set(-4, 6, 5);
   const rim = new THREE.DirectionalLight(0xffc773, 3); rim.position.set(5, 3, -5);
   scene.add(key, rim);
-  const cam = new THREE.PerspectiveCamera(28, 1, .1, 100);
+  const cam = new THREE.PerspectiveCamera(28, 1, 1, 60);   // tighter near/far = more depth precision
 
   const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/devices.glb');
   const root = gltf.scene; scene.add(root);
@@ -118,7 +118,10 @@ async function init() {
 
   /* screens: glossy glass that glows with the website and reflects the room */
   const screenMat = () => new THREE.MeshStandardMaterial({
-    color: 0x000000, emissive: 0xffffff, emissiveIntensity: 0, roughness: .16, metalness: 0, toneMapped: false });
+    color: 0x000000, emissive: 0xffffff, emissiveIntensity: 0, roughness: .16, metalness: 0, toneMapped: false,
+    // the screen sits 0.6 mm in front of the black bezel glass: from far away the depth buffer
+    // can't tell them apart (z-fighting → black diagonal stripes). Always draw the screen on top.
+    polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
   const lapMat = screenMat(), phMat = screenMat();
   root.getObjectByName('LaptopScreen').material = lapMat;
   root.getObjectByName('PhoneScreen').material = phMat;
@@ -175,7 +178,7 @@ async function init() {
   function size() {
     const w = stage.clientWidth, h = stage.clientHeight;
     renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix();
-    fitD = Math.max(7.6, 2.5 / (.2493 * cam.aspect));   // distance at which both devices fit the frame
+    fitD = Math.max(8.4, 2.5 / (.2493 * cam.aspect));   // distance at which both devices fit the frame
   }
   new ResizeObserver(size).observe(stage); size();
 
