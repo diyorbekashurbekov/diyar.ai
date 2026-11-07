@@ -187,6 +187,16 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .card.rv.in .shot{clip-path:inset(0% 0% 0% 0% round 16px)}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.card.rv .shot{clip-path:none}}
 
+/* ===== SHARDS background layer (js/fx.js) ===== */
+#fx{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;opacity:0}
+.hero,.marquee,body > .wrap,section,footer{position:relative;z-index:1}
+.portrait::before{transition:opacity 1.2s var(--ease),transform 1.2s var(--ease)}
+.fx-on .portrait::before{opacity:0;transform:scale(.6)}
+
+/* project cards: 3D tilt toward the cursor (desktop) */
+.shot{transform-style:preserve-3d;transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
+.card:hover .shot{box-shadow:0 30px 60px -25px rgba(18,17,16,.45)}
+
 /* ===== 3D SHOWCASE ===== */
 .show{position:relative;height:620vh}
 .show-pin{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
@@ -769,6 +779,19 @@ document.getElementById('order').addEventListener('click',function(){
 </script>
 
 <!-- 3D showcase (Blender model + Three.js) — see js/showcase.js -->
-<script type="module" src="js/showcase.js"></script>
+<script type="module" src="js/showcase.js?v=11071425"></script>
+<!-- Blender-fractured gold shards behind the whole page — see js/fx.js -->
+<script type="module" src="js/fx.js?v=11071425"></script>
+<script>
+/* card tilt: follows the cursor, desktop only */
+if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.querySelectorAll('.card').forEach(function(c){
+    var s=c.querySelector('.shot');
+    c.addEventListener('mousemove',function(e){var r=s.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      s.style.transform='perspective(900px) rotateY('+(x*8)+'deg) rotateX('+(-y*8)+'deg) translateZ(0)'});
+    c.addEventListener('mouseleave',function(){s.style.transform=''});
+  });
+}
+</script>
 </body>
 </html>

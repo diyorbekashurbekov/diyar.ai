@@ -21,7 +21,7 @@ const P = [
   ['LUXE Barbershop', 'Барбершоп · Кентау', 'luxe-barbershop-kentau', 'barber'],
   ['Amanat Interior', 'Интерьер · Астана', 'amanat_interior', 'amanat'],
 ];
-const INTRO = .1;                 // first 10% of the section: the laptop opens
+const INTRO = .15;                // first 15%: scattered parts assemble, then the lid opens
 let prog = 0, idx = 0, onIndex = null;
 
 /* where we are: u runs 0..N across the projects */
@@ -107,6 +107,15 @@ async function init() {
   const lid = root.getObjectByName('Lid'), phone = root.getObjectByName('Phone');
   const phBase = phone.position.clone();
 
+  /* every part starts scattered around the scene and flies home (keys, lid, trackpad, lenses...) */
+  const parts = [];
+  root.traverse(o => {
+    if (!o.isMesh) return;
+    const dir = new THREE.Vector3(Math.random() - .5, Math.random() * .8 + .1, Math.random() - .5).normalize();
+    parts.push({ o, p: o.position.clone(), r: o.rotation.clone(), d: dir.multiplyScalar(1.6 + Math.random() * 2.4),
+      s: [Math.random() * 6 - 3, Math.random() * 6 - 3, Math.random() * 6 - 3], delay: Math.random() * .45 });
+  });
+
   /* screens: glossy glass that glows with the website and reflects the room */
   const screenMat = () => new THREE.MeshStandardMaterial({
     color: 0x000000, emissive: 0xffffff, emissiveIntensity: 0, roughness: .16, metalness: 0, toneMapped: false });
@@ -189,8 +198,15 @@ async function init() {
     sm += (prog - sm) * .085; mx += (tx - mx) * .06; my += (ty - my) * .06;
     const time = performance.now() / 1000;
 
-    /* intro: lid opens, phone slides in */
-    const open = easeOut(clamp(sm / INTRO));
+    /* intro part 1: scattered parts fly together (each with its own delay) */
+    const build = clamp(sm / (INTRO * .6));
+    for (const q of parts) {
+      const k = 1 - easeOut(clamp((build - q.delay) / (1 - q.delay * .9)));
+      q.o.position.set(q.p.x + q.d.x * k, q.p.y + q.d.y * k, q.p.z + q.d.z * k);
+      q.o.rotation.set(q.r.x + q.s[0] * k, q.r.y + q.s[1] * k, q.r.z + q.s[2] * k);
+    }
+    /* intro part 2: lid opens, phone slides in */
+    const open = easeOut(clamp((sm - INTRO * .45) / (INTRO * .55)));
     lid.rotation.set(lerp(Math.PI / 2, -.21, open), 0, 0);
     phone.position.set(phBase.x + (1 - open) * .7, phBase.y - (1 - open) * .35 + Math.sin(time * 1.4) * .03, phBase.z + (1 - open) * .3);
 
