@@ -188,6 +188,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.card.rv .shot{clip-path:none}}
 
 /* ===== SHARDS background layer (js/fx.js) ===== */
+.dmark{height:clamp(150px,22vw,250px);margin:0 auto clamp(10px,2vw,24px)}
 #fx{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;opacity:0}
 .hero,.marquee,body > .wrap,section,footer{position:relative;z-index:1}
 .portrait::before{transition:opacity 1.2s var(--ease),transform 1.2s var(--ease)}
@@ -659,6 +660,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <!-- CONTACT -->
 <section class="contact" id="contact">
   <div class="wrap">
+    <div class="dmark" aria-hidden="true"></div>
     <div class="eyebrow" data-a>Байланыс</div>
     <a class="big mag" href="https://wa.me/77079840416" target="_blank" rel="noopener" data-a>Бастайық<em>бірге.</em></a>
     <div class="links" data-a>
@@ -841,7 +843,7 @@ document.getElementById('order').addEventListener('click',function(){
 <script type="module" src="js/showcase.js?v=11071448p"></script>
 <!-- Blender-fractured gold shards behind the whole page — see js/fx.js -->
 <script type="module" src="js/projects.js?v=11071448p"></script>
-<script type="module" src="js/fx.js?v=11071448p"></script>
+<script type="module" src="js/fx.js?v=11071452f"></script>
 <script>
 /* card tilt: follows the cursor, desktop only */
 if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches){

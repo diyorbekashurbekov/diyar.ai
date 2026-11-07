@@ -20,8 +20,11 @@ if (ok) {
 function letterPoints(n) {
   const W = 260, H = 200, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d');
-  g.fillStyle = '#fff'; g.font = 'italic 190px "Playfair Display", Georgia, serif';
-  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('D.', W / 2, H / 2 + 8);
+  // thick strokes so ~110 shards fill the glyph solidly (thin serif hairlines would break up)
+  g.fillStyle = g.strokeStyle = '#fff'; g.lineWidth = 7; g.lineJoin = 'round';
+  g.font = 'italic 600 176px "Playfair Display", Georgia, serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('D.', W / 2, H / 2 + 8); g.strokeText('D.', W / 2, H / 2 + 8);
   const d = g.getImageData(0, 0, W, H).data, pts = [];
   for (let y = 0; y < H; y += 3) for (let x = 0; x < W; x += 3) if (d[(y * W + x) * 4 + 3] > 128) pts.push([x, y]);
   // farthest-point sampling → evenly spread shards over the glyph
@@ -34,7 +37,7 @@ function letterPoints(n) {
     }
     out.push(pts[bi]);
   }
-  return out.map(([x, y]) => [(x - W / 2) / H, -(y - H / 2) / H, (Math.random() - .5) * .3]);
+  return out.map(([x, y]) => [(x - W / 2) / H, -(y - H / 2) / H, (Math.random() - .5) * .04]);
 }
 
 async function init() {
@@ -112,7 +115,7 @@ async function init() {
     uOrb: { value: new THREE.Vector4(0, 0, 0, 1) }, // centre xyz, radius
     uLet: { value: new THREE.Vector4(0, -20, 0, 1) },// centre xyz, height
     uCloud: { value: new THREE.Vector3(8, 5, 7) },   // half width, half height, depth
-    uS: { value: new THREE.Vector3(1, .32, .15) },   // shard scale per formation
+    uS: { value: new THREE.Vector3(1, .32, .13) },  // shard scale per formation (letter: overlap into solid strokes)
     uPush: { value: 0 },                             // pointer near the orb → it cracks open
   };
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, metalness: 1, roughness: .26, flatShading: true });
@@ -123,6 +126,7 @@ async function init() {
         attribute vec3 aA; attribute vec3 aB; attribute vec3 aC; attribute vec4 aR;
         uniform vec3 uW; uniform float uTime; uniform mat3 uRot; uniform vec4 uOrb; uniform vec4 uLet;
         uniform vec3 uCloud; uniform vec3 uS; uniform float uPush;
+        varying float vK;
         vec3 rotA(vec3 v, vec3 a, float t){ float c=cos(t), s=sin(t); return v*c + cross(a,v)*s + a*dot(a,v)*(1.-c); }`)
       .replace('#include <begin_vertex>', `
         float st = aR.w * .45;                                   // staggered arrival per shard
@@ -132,7 +136,11 @@ async function init() {
         float ks = kA + kB + kC; kA /= ks; kB /= ks; kC /= ks;
         vec3 ax = normalize(aR.xyz);
         float spin = kB * (aR.w * 6.2831 + uTime * (.22 + aR.w * .45));
-        vec3 loc = rotA(uRot * position, ax, spin);
+        // orb/cloud: shards tumble with the orb; letter: they lie flat toward the camera → clean mosaic
+        vec3 locOrb = rotA(uRot * position, ax, spin);
+        vec3 locLet = vec3(position.xy, position.z * .25);
+        vec3 loc = mix(locOrb, locLet, kC);
+        vK = kC;
         vec3 dir = normalize(aA + 1e-4);
         vec3 pA = uOrb.xyz + uRot * (aA + dir * (uPush * (.25 + aR.w * .35) + .012 * sin(uTime * 1.6 + aR.w * 20.))) * uOrb.w;
         float tt = uTime * .12 + aR.w * 40.;
@@ -140,12 +148,19 @@ async function init() {
         vec3 pC = uLet.xyz + vec3(aC.xy * uLet.w, aC.z * uLet.w);
         float sc = kA * uOrb.w * uS.x + kB * uS.y + kC * uLet.w * uS.z;
         vec3 transformed = kA * pA + kB * pB + kC * pC + loc * sc;`);
+    // letter formation: every face gold (no dark fracture faces poking through) + a soft glow
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\n varying float vK;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1., .64, .28), vK);`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        totalEmissiveRadiance += vec3(.55, .32, .12) * vK;`);
   };
   const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; scene.add(mesh);
 
   /* ---------- DOM anchors ---------- */
   const hero = document.querySelector('.hero'), portrait = document.getElementById('portrait');
-  const contact = document.getElementById('contact'), big = contact && contact.querySelector('.big');
+  const contact = document.getElementById('contact'), big = contact && contact.querySelector('.dmark');
   const show = document.getElementById('show');
   const lights = [...document.querySelectorAll('.light')];
   let k = 1;                                   // world units per CSS px on the z=0 plane
@@ -208,8 +223,8 @@ async function init() {
     if (big) {
       const r = big.getBoundingClientRect();
       toWorld(r.left + r.width / 2, r.top + r.height / 2, tmp);
-      // giant, deep in the background (fog dims it) so the headline stays readable
-      U.uLet.value.set(tmp.x, tmp.y, -4.5, Math.min(r.height * 2.3, innerWidth * .95) * k);
+      // its own space above the headline (nothing overlaps it), capped so the glyph fits phones too
+      U.uLet.value.set(tmp.x, tmp.y, 0, Math.min(r.height * 1.05, innerWidth * .6) * k);
     }
 
     px += (tx - px) * .05 * F; py += (ty - py) * .05 * F; push += (pushT - push) * .08 * F;
