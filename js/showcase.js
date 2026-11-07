@@ -87,8 +87,9 @@ async function init() {
     import('three/addons/environments/RoomEnvironment.js'), import('three/addons/libs/meshopt_decoder.module.js')]);
 
   const stage = $('stage'), canvas = $('gl'), mobile = innerWidth < 900;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.5 : 2));
+  const LOW = mobile || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !LOW, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, LOW ? 1.25 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
@@ -198,6 +199,8 @@ async function init() {
     if (!visible) { looping = false; return; }
     requestAnimationFrame(loop);
     measure();                            // never miss a scroll position, even if scroll events are coalesced
+    // weak devices: when nothing moves (no scroll, no pointer, no screen switch) skip the frame entirely
+    if (LOW && !first && Math.abs(prog - sm) < 1e-4 && Math.abs(tx - mx) < 1e-3 && Math.abs(ty - my) < 1e-3 && flash < .004) return;
     sm += (prog - sm) * .085; mx += (tx - mx) * .06; my += (ty - my) * .06;
     const time = performance.now() / 1000;
 
@@ -211,7 +214,7 @@ async function init() {
     /* intro part 2: lid opens, phone slides in */
     const open = easeOut(clamp((sm - INTRO * .45) / (INTRO * .55)));
     lid.rotation.set(lerp(Math.PI / 2, -.21, open), 0, 0);
-    phone.position.set(phBase.x + (1 - open) * .7, phBase.y - (1 - open) * .35 + Math.sin(time * 1.4) * .03, phBase.z + (1 - open) * .3);
+    phone.position.set(phBase.x + (1 - open) * .7, phBase.y - (1 - open) * .35 + (LOW ? 0 : Math.sin(time * 1.4) * .03), phBase.z + (1 - open) * .3);
 
     /* camera: hold each project's shot, glide to the next one near the end of its segment */
     const u = uOf(sm), i = Math.min(P.length - 1, Math.floor(u)), f = u - i;

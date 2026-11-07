@@ -197,9 +197,17 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .shot{transform-style:preserve-3d;transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
 .card:hover .shot{box-shadow:0 30px 60px -25px rgba(18,17,16,.45)}
 
+/* ===== touch devices: drop effects that force full-screen re-composition every frame ===== */
+@media (hover:none),(max-width:900px){
+  header{mix-blend-mode:normal;color:var(--cream);background:linear-gradient(rgba(15,14,12,.88),rgba(15,14,12,0))}
+  .portrait figcaption{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(15,14,12,.94)}
+  .btn{will-change:auto}
+}
+
 /* ===== LIVE CARDS (js/projects.js) ===== */
 .live{position:absolute;inset:0;z-index:1;overflow:hidden;opacity:0;transition:opacity .45s var(--ease);border-radius:inherit;background:#e6e1d6}
-.live img{width:100%;height:auto;max-width:none;transform:translate3d(0,0,0);will-change:transform}
+.live img{width:100%;height:auto;max-width:none}
+.card.playing .live img{will-change:transform}
 .card.playing .live{opacity:1}
 .card.playing .shot > img{transform:none}
 .shot::after{content:'';position:absolute;left:14px;bottom:14px;z-index:2;padding:6px 11px;border-radius:99px;background:rgba(15,14,12,.78);color:var(--cream);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:opacity .35s}
@@ -716,12 +724,16 @@ document.getElementById('order').addEventListener('click',function(){
   scroll(animate('#progress',{scaleX:[0,1]},{ease:'linear'}));
 
   /* marquee: loops, speeds up with scroll */
-  var track=document.getElementById('track'),x=0,boost=0,lastY=scrollY;
-  (function loop(){
+  /* width measured once (not every frame), loop runs only while the marquee is on screen */
+  var track=document.getElementById('track'),x=0,boost=0,lastY=scrollY,half=track.scrollWidth/2,mqOn=false,mqRun=false;
+  addEventListener('resize',function(){half=track.scrollWidth/2});
+  function mq(){
+    if(!mqOn){mqRun=false;return}
     var dy=scrollY-lastY;lastY=scrollY;boost+=(Math.abs(dy)*.25-boost)*.1;
-    x-=.6+boost;var half=track.scrollWidth/2;if(-x>=half)x+=half;
-    track.style.transform='translate3d('+x+'px,0,0)';requestAnimationFrame(loop);
-  })();
+    x-=.6+boost;if(-x>=half)x+=half;
+    track.style.transform='translate3d('+x+'px,0,0)';requestAnimationFrame(mq);
+  }
+  new IntersectionObserver(function(es){mqOn=es[es.length-1].isIntersecting;lastY=scrollY;if(mqOn&&!mqRun){mqRun=true;requestAnimationFrame(mq)}}).observe(track.parentNode);
 
   /* reveals: CSS-driven, so content always ends visible */
   var items=[].slice.call(document.querySelectorAll('[data-a],.card'));
@@ -826,10 +838,10 @@ document.getElementById('order').addEventListener('click',function(){
 </script>
 
 <!-- 3D showcase (Blender model + Three.js) — see js/showcase.js -->
-<script type="module" src="js/showcase.js?v=11071429b"></script>
+<script type="module" src="js/showcase.js?v=11071448p"></script>
 <!-- Blender-fractured gold shards behind the whole page — see js/fx.js -->
-<script type="module" src="js/projects.js?v=11071442m"></script>
-<script type="module" src="js/fx.js?v=11071425"></script>
+<script type="module" src="js/projects.js?v=11071448p"></script>
+<script type="module" src="js/fx.js?v=11071448p"></script>
 <script>
 /* card tilt: follows the cursor, desktop only */
 if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion: reduce)').matches){

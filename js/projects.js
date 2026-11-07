@@ -27,7 +27,9 @@ function live(c) {
   let box = shot.querySelector('.live');
   if (!box) {
     box = document.createElement('span'); box.className = 'live';
-    const im = new Image(); im.decoding = 'async'; im.alt = ''; im.src = `images/scroll/d_${idOf(c)}.webp`;
+    const im = new Image(); im.decoding = 'async'; im.alt = '';
+    // phones get a 480px-wide version: 4x less memory to decode than the desktop one
+    im.src = `images/scroll/${fine ? 'd' : 't'}_${idOf(c)}.webp`;
     box.append(im); shot.append(box);
   }
   return box;

@@ -44,10 +44,12 @@ async function init() {
   try { await document.fonts.load('italic 190px "Playfair Display"'); } catch (e) {}
 
   const mobile = innerWidth < 900;
+  // phones / weak devices: 1x pixels and 30 fps for this ambient layer (it's background, not the hero)
+  const LOW = mobile || (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
   const canvas = document.createElement('canvas'); canvas.id = 'fx'; canvas.setAttribute('aria-hidden', 'true');
   document.body.prepend(canvas);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 1.75));
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !LOW, alpha: true, powerPreference: LOW ? 'low-power' : 'high-performance' });
+  renderer.setPixelRatio(LOW ? 1 : Math.min(devicePixelRatio, 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
 
@@ -168,18 +170,22 @@ async function init() {
 
   /* ---------- loop ---------- */
   const t0 = performance.now(), rotE = new THREE.Euler(), rotM = new THREE.Matrix4(), tmp = new THREE.Vector3();
-  let wA = 0, wB = 1, wC = 0, push = 0, ready = false, alpha = 0;
-  function frame() {
+  let wA = 0, wB = 1, wC = 0, push = 0, ready = false, alpha = 0, shownAlpha = -1, last = 0;
+  const STEP = LOW ? 1000 / 30 - 2 : 0;
+  function frame(ts) {
     requestAnimationFrame(frame);
-    if (document.hidden) return;
+    if (document.hidden || ts - last < STEP) return;      // 30 fps cap on weak devices
+    last = ts;
     const H = innerHeight, now = (performance.now() - t0) / 1000;
 
     // skip the GPU work whenever an opaque light section or the 3D showcase fills the screen
     let covered = lights.some(s => { const r = s.getBoundingClientRect(); return r.top <= 0 && r.bottom >= H; });
     let inShow = false;
     if (show) { const r = show.getBoundingClientRect(); inShow = r.top < H * .35 && r.bottom > H * .65; }
-    alpha += ((inShow ? 0 : 1) - alpha) * .12;
-    canvas.style.opacity = alpha.toFixed(3);
+    alpha += ((inShow ? 0 : 1) - alpha) * (LOW ? .22 : .12);
+    if (Math.abs(alpha - shownAlpha) > .01 || (alpha < .01 && shownAlpha !== 0)) {   // touch the DOM only when it changes
+      shownAlpha = alpha < .01 ? 0 : alpha; canvas.style.opacity = shownAlpha.toFixed(2);
+    }
     if (covered || alpha < .01) return;
 
     // formation weights from scroll position
@@ -188,7 +194,8 @@ async function init() {
     if (hero) { const r = hero.getBoundingClientRect(); a = smooth(.2, .72, r.bottom / H); }
     if (contact) { const r = contact.getBoundingClientRect(); c = smooth(H * .95, H * .2, r.top) * smooth(-H * .2, H * .35, r.bottom); }
     a *= intro;
-    wA += (a - wA) * .08; wC += (c - wC) * .06;
+    const F = LOW ? 1.9 : 1;                                // same easing speed at 30 fps
+    wA += (a - wA) * .08 * F; wC += (c - wC) * .06 * F;
     U.uW.value.set(wA, Math.max(0, 1 - wA - wC), wC);
 
     // orb sits exactly on the portrait's gold circle
@@ -205,7 +212,7 @@ async function init() {
       U.uLet.value.set(tmp.x, tmp.y, -4.5, Math.min(r.height * 2.3, innerWidth * .95) * k);
     }
 
-    px += (tx - px) * .05; py += (ty - py) * .05; push += (pushT - push) * .08;
+    px += (tx - px) * .05 * F; py += (ty - py) * .05 * F; push += (pushT - push) * .08 * F;
     U.uPush.value = push;
     rotE.set(.25 + py * .5, now * .18 + px * .9, .08);
     rotM.makeRotationFromEuler(rotE); U.uRot.value.setFromMatrix4(rotM);
@@ -214,5 +221,5 @@ async function init() {
     renderer.render(scene, cam);
     if (!ready) { ready = true; document.body.classList.add('fx-on'); }
   }
-  frame();
+  requestAnimationFrame(frame);
 }
