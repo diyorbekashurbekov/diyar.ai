@@ -16,6 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- 3D: only declares where Three.js lives; nothing downloads until the showcase is near -->
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
 
 <style>
 :root{
@@ -185,7 +187,103 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .card.rv.in .shot{clip-path:inset(0% 0% 0% 0% round 16px)}
 @media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.card.rv .shot{clip-path:none}}
 
+/* ===== 3D SHOWCASE ===== */
+.show{position:relative;height:360vh}
+.show-pin{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
+.show-pin::before{content:'';position:absolute;left:55%;top:50%;width:70vw;height:70vw;max-width:900px;max-height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(200,164,106,.16),transparent 60%);pointer-events:none}
+.show-grid{position:relative;width:100%;display:grid;grid-template-columns:.75fr 1.25fr;gap:clamp(20px,3vw,48px);align-items:center}
+.show-txt h2{font-size:clamp(2.4rem,5vw,4.4rem);margin:18px 0 clamp(28px,5vh,56px)}
+.sp-num{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--dim);display:flex;align-items:baseline;gap:6px}
+.sp-num b{font-weight:400;font-size:clamp(2.6rem,5vw,4rem);color:var(--gold);line-height:1}
+.sp-body{transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.sp-body.swap{opacity:0;transform:translateY(14px)}
+.sp-name{font-size:clamp(1.7rem,3vw,2.6rem);margin-top:8px}
+.sp-meta{font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.sp-link{display:inline-flex;gap:8px;margin-top:22px;font-size:.82rem;border-bottom:1px solid var(--gold);padding-bottom:3px}
+.sp-dots{display:flex;gap:6px;margin-top:30px}
+.sp-dots i{width:22px;height:2px;background:var(--faint);transition:background .4s,width .4s var(--ease)}
+.sp-dots i.on{background:var(--gold);width:40px}
+.stage{position:relative;height:min(78svh,720px)}
+.stage img,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .8s var(--ease)}
+.stage canvas{opacity:0}
+.stage.ready canvas{opacity:1}
+.stage.ready img{opacity:0}
+.scroll-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);transition:opacity .4s}
+
+/* ===== PHONE MOCKUP (shared) ===== */
+.ph{position:relative;width:min(300px,78vw);aspect-ratio:9/19;border-radius:46px;padding:10px;background:#1a1916;box-shadow:0 0 0 1px rgba(200,164,106,.4),0 40px 80px -20px rgba(0,0,0,.6),inset 0 0 0 2px #2a2823;margin:0 auto}
+.ph::before{content:'';position:absolute;top:20px;left:50%;width:84px;height:24px;margin-left:-42px;border-radius:20px;background:#000;z-index:5}
+.scr{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#0b0a09}
+
+/* ===== PROCESS: chat -> site ===== */
+.proc{display:grid;grid-template-columns:auto 1fr;gap:clamp(40px,7vw,110px);align-items:center}
+.chat-h{display:flex;align-items:center;gap:10px;padding:52px 16px 12px;background:#161512;border-bottom:1px solid var(--faint)}
+.av{width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--dark);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic}
+.chat-h b{display:block;font-weight:500;font-size:.86rem}
+.chat-h small{font-size:.68rem;color:#3ccf8e}
+.msgs{display:flex;flex-direction:column;gap:8px;padding:16px 12px}
+.msg{max-width:80%;padding:9px 12px;border-radius:14px;font-size:.78rem;line-height:1.4;opacity:0;transform:translateY(10px) scale(.96);transition:all .45s var(--ease)}
+.msg.vis{opacity:1;transform:none}
+.msg.me{align-self:flex-end;background:rgba(200,164,106,.24);border-bottom-right-radius:4px}
+.msg.him{align-self:flex-start;background:#1f1d1a;border-bottom-left-radius:4px}
+.msg.pics{display:grid;grid-template-columns:repeat(3,38px);gap:4px;padding:6px}
+.msg.pics i{height:38px;border-radius:8px;background:linear-gradient(135deg,#8a6f45,#d9b97f)}
+.msg.pics i:nth-child(2){background:linear-gradient(135deg,#3a4a3f,#7aa58a)}
+.msg.pics i:nth-child(3){background:linear-gradient(135deg,#4a3a3a,#c28a7a)}
+.build{position:absolute;inset:0;background:#f6f3ec;color:#121110;padding:54px 14px 14px;transform:translateY(100%);transition:transform .8s var(--ease);display:flex;flex-direction:column;gap:10px}
+.build.on{transform:none}
+.build > *{opacity:0;transform:translateY(16px);transition:all .5s var(--ease)}
+.build > .in{opacity:1;transform:none}
+.b-nav{display:flex;justify-content:space-between;align-items:center;font-family:'Playfair Display',serif;font-style:italic}
+.b-nav span{display:flex;gap:6px}.b-nav span i{width:18px;height:3px;border-radius:2px;background:#cfc8b8}
+.b-hero{height:132px;border-radius:16px;background:radial-gradient(circle at 80% 20%,#e7cf9f,#8a6f45);display:flex;align-items:flex-end;padding:14px;color:#fff;font-family:'Playfair Display',serif;font-size:1.3rem;line-height:1.05}
+.b-line{height:7px;border-radius:4px;background:#ddd6c7}.b-line.s{width:62%}
+.b-btn{align-self:flex-start;padding:8px 16px;border-radius:99px;background:#121110;color:#f6f3ec;font-size:.68rem}
+.b-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.b-grid i{aspect-ratio:1;border-radius:10px;background:#e6dfd0}
+.b-done{margin-top:auto;align-self:center;padding:9px 16px;border-radius:99px;background:#3ccf8e;color:#06281a;font-size:.72rem;font-weight:500}
+.steps.steps-v{display:grid;gap:12px;grid-template-columns:1fr}
+.steps-v .step{display:grid;grid-template-columns:64px 1fr;align-items:center;padding:22px 24px}
+.steps-v .step b{margin:0;font-size:2rem}
+.steps-v .step.act{border-color:var(--gold);background:rgba(200,164,106,.08)}
+.steps-v .step.act b{text-shadow:0 0 24px rgba(200,164,106,.6)}
+
+/* ===== TRY-IT builder ===== */
+.try{display:grid;grid-template-columns:1fr auto;gap:clamp(40px,7vw,110px);align-items:center}
+.try h2{font-size:clamp(2.6rem,6vw,5rem);margin:16px 0 18px}
+.try p.lead{color:var(--muted);max-width:40ch;margin-bottom:30px}
+.field{width:100%;max-width:440px;padding:18px 22px;border-radius:14px;border:1px solid var(--line);background:#fff;font:inherit;font-size:1.05rem;color:var(--ink);outline:none;transition:border-color .3s}
+.field:focus{border-color:var(--ink)}
+.lbl{display:block;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:24px 0 10px}
+.sw{display:flex;gap:10px}
+.sw button{width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--c);box-shadow:inset 0 0 0 3px var(--bg);transition:transform .3s var(--ease)}
+.sw button.on{border-color:var(--ink);transform:scale(1.1)}
+.try .btn{margin-top:32px}
+.mini{--acc:#c8a46a;position:absolute;inset:0;background:#f6f3ec;color:#121110;display:flex;flex-direction:column;padding:52px 16px 16px;gap:12px;transition:background .4s}
+.m-nav{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:500}
+.m-logo{width:26px;height:26px;border-radius:8px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-style:italic;transition:background .4s}
+.m-nav span:last-child{margin-left:auto;display:flex;gap:4px}.m-nav span:last-child i{width:14px;height:2px;background:#121110}
+.m-hero{position:relative;border-radius:18px;padding:22px 16px;min-height:170px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;background:#121110;color:#f6f3ec}
+.m-hero::before{content:'';position:absolute;right:-30%;top:-40%;width:110%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,var(--acc),transparent 65%);opacity:.85;transition:background .4s}
+.m-hero small{position:relative;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;opacity:.7}
+.m-hero h4{position:relative;font-family:'Playfair Display',serif;font-weight:400;font-size:1.75rem;line-height:1;margin:6px 0 6px;word-break:break-word}
+.m-hero p{position:relative;font-size:.7rem;opacity:.8}
+.m-items{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.m-items div{border-radius:12px;background:#fff;padding:10px 8px;font-size:.62rem;text-align:center;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+.m-items div i{display:block;aspect-ratio:1;border-radius:9px;margin-bottom:6px;background:linear-gradient(135deg,var(--acc),#121110);opacity:.85;transition:background .4s}
+.m-rev{display:flex;align-items:center;gap:8px;font-size:.64rem;color:#6b665c}
+.m-rev b{color:var(--acc);letter-spacing:2px;transition:color .4s}
+.m-cta{margin-top:auto;padding:13px;border-radius:99px;background:var(--acc);color:#fff;text-align:center;font-size:.74rem;font-weight:500;transition:background .4s}
+.pop{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:scale(.96);opacity:.6}100%{transform:none;opacity:1}}
+
 @media (max-width:900px){
+  .show-grid{grid-template-columns:1fr;gap:0}
+  .show-txt h2{font-size:2rem;margin:8px 0 16px}
+  .sp-num b{font-size:2.2rem}
+  .sp-dots,.sp-link{margin-top:14px}
+  .stage{height:50svh}
+  .proc,.try{grid-template-columns:1fr}
+  .try .ph{order:-1}
   .hero-grid{grid-template-columns:1fr}
   .portrait{order:-1;justify-self:center;max-width:320px}
   .menu{display:none}
@@ -278,6 +376,30 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </div>
 
+<!-- 3D SHOWCASE (model made in Blender, rendered with Three.js) -->
+<section class="show" id="show" style="padding:0">
+  <div class="show-pin">
+    <div class="wrap show-grid">
+      <div class="show-txt">
+        <div class="eyebrow">Витрина · 3D</div>
+        <h2>Әр сайт — <em>тірі</em> витрина</h2>
+        <div class="sp-num"><b id="sp-i">01</b>/ 06</div>
+        <div class="sp-body" id="sp-body">
+          <h3 class="sp-name" id="sp-name">DOS Мебель</h3>
+          <div class="sp-meta" id="sp-meta">Жиһаз фабрикасы · Алматы</div>
+          <a class="sp-link" id="sp-link" href="https://diyorbekashurbekov.github.io/dos-mebel/" target="_blank" rel="noopener">Сайтты ашу <span>↗</span></a>
+        </div>
+        <div class="sp-dots" id="sp-dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="stage" id="stage">
+        <img src="images/devices_poster.webp" alt="Ноутбук пен телефонда ашылған жобалар" width="1600" height="1100" loading="lazy" decoding="async">
+        <canvas id="gl" aria-hidden="true"></canvas>
+      </div>
+    </div>
+    <div class="scroll-hint" id="hint">Төмен айналдырыңыз ↓</div>
+  </div>
+</section>
+
 <!-- PROJECTS -->
 <section class="light" id="projects">
   <div class="wrap">
@@ -359,12 +481,73 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 <!-- PROCESS -->
 <section style="padding-top:0">
   <div class="wrap">
-    <div class="head" data-a><h2>4 қадам</h2></div>
-    <div class="steps" data-stagger>
-      <div class="step"><b>01</b><h3>Әңгіме</h3><p>WhatsApp-та тегін</p></div>
-      <div class="step"><b>02</b><h3>Мәлімет</h3><p>Логотип, фото, мәтін</p></div>
-      <div class="step"><b>03</b><h3>Әзірлеу</h3><p>24 сағат ішінде</p></div>
-      <div class="step"><b>04</b><h3>Іске қосу</h3><p>Қолдау жалғасады</p></div>
+    <div class="head" data-a><h2>Бір хабарламадан — <em>сайтқа</em></h2></div>
+    <div class="proc">
+      <div class="ph" id="chatph" data-a>
+        <div class="scr">
+          <div class="chat-h"><span class="av">D</span><div><b>Диярбек</b><small id="chat-st">онлайн</small></div></div>
+          <div class="msgs">
+            <div class="msg me" data-s="0">Сәлеметсіз бе! Бизнесіме сайт керек 🙌</div>
+            <div class="msg him" data-s="0">Сәлеметсіз бе! Логотип пен бірнеше фото жіберіңіз 👌</div>
+            <div class="msg me pics" data-s="1"><i></i><i></i><i></i></div>
+            <div class="msg me" data-s="1">Міне, логотип та бар ✅</div>
+            <div class="msg him" data-s="2">Қабылдадым. Ертеңге дайын болады ⚡</div>
+          </div>
+          <div class="build" id="build">
+            <div class="b-nav">Сіздің бренд<span><i></i><i></i></span></div>
+            <div class="b-hero">Сіздің<br>бизнесіңіз</div>
+            <div class="b-line"></div><div class="b-line s"></div>
+            <div class="b-btn">WhatsApp-қа жазу</div>
+            <div class="b-grid"><i></i><i></i><i></i></div>
+            <div class="b-done">✓ Сайт іске қосылды</div>
+          </div>
+        </div>
+      </div>
+      <div class="steps steps-v" id="stepsv" data-stagger>
+        <div class="step"><b>01</b><div><h3>Әңгіме</h3><p>WhatsApp-та тегін</p></div></div>
+        <div class="step"><b>02</b><div><h3>Мәлімет</h3><p>Логотип, фото, мәтін</p></div></div>
+        <div class="step"><b>03</b><div><h3>Әзірлеу</h3><p>24 сағат ішінде</p></div></div>
+        <div class="step"><b>04</b><div><h3>Іске қосу</h3><p>Қолдау жалғасады</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRY IT: live mini-site builder -->
+<section class="light" id="try">
+  <div class="wrap try">
+    <div data-a>
+      <div class="eyebrow" style="color:#8a6f45">Сынап көріңіз</div>
+      <h2>Сайтыңызды <em>қазір</em> көріңіз</h2>
+      <p class="lead">Бизнесіңіздің атын жазыңыз — сайтыңыз телефонда бірден пайда болады.</p>
+      <input class="field" id="t-name" maxlength="28" placeholder="Мысалы: Айгүл гүлдері" autocomplete="off">
+      <span class="lbl">Сала</span>
+      <div class="filters" id="t-kind">
+        <button class="chip on" data-k="shop">Дүкен</button>
+        <button class="chip" data-k="cafe">Кафе</button>
+        <button class="chip" data-k="salon">Салон</button>
+        <button class="chip" data-k="barber">Барбершоп</button>
+      </div>
+      <span class="lbl">Түс</span>
+      <div class="sw" id="t-col">
+        <button class="on" style="--c:#c8a46a" data-c="#c8a46a" data-n="алтын" aria-label="Алтын"></button>
+        <button style="--c:#2f9e7a" data-c="#2f9e7a" data-n="жасыл" aria-label="Жасыл"></button>
+        <button style="--c:#c2415d" data-c="#c2415d" data-n="қызыл" aria-label="Қызыл"></button>
+        <button style="--c:#3b6fc4" data-c="#3b6fc4" data-n="көк" aria-label="Көк"></button>
+        <button style="--c:#7a4fc4" data-c="#7a4fc4" data-n="күлгін" aria-label="Күлгін"></button>
+      </div>
+      <button class="btn mag" id="t-go">Осы сайтты маған жаса <span class="arr">→</span></button>
+    </div>
+    <div class="ph" data-a>
+      <div class="scr">
+        <div class="mini" id="mini">
+          <div class="m-nav"><span class="m-logo" id="m-logo">А</span><span id="m-brand">Сіздің бренд</span><span><i></i><i></i></span></div>
+          <div class="m-hero"><small id="m-kind">Дүкен</small><h4 id="m-name">Сіздің бренд</h4><p id="m-tag">Сапалы тауар — қолжетімді баға</p></div>
+          <div class="m-items" id="m-items"><div><i></i>Жаңа</div><div><i></i>Хит</div><div><i></i>Жеңілдік</div></div>
+          <div class="m-rev"><b>★★★★★</b>4.9 · 120+ пікір</div>
+          <div class="m-cta">WhatsApp арқылы тапсырыс</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -520,6 +703,193 @@ document.getElementById('order').addEventListener('click',function(){
     el.addEventListener('mouseleave',function(){animate(cur,{scale:1},{duration:.3})});
   });
 })();
+
+/* ===== chat -> site story (loops while visible) ===== */
+(function(){
+  var ph=document.getElementById('chatph');if(!ph)return;
+  var msgs=[].slice.call(ph.querySelectorAll('.msg')),build=document.getElementById('build'),
+      parts=[].slice.call(build.children),steps=[].slice.call(document.querySelectorAll('#stepsv .step')),
+      st=document.getElementById('chat-st'),timers=[],running=false;
+  function at(ms,fn){timers.push(setTimeout(fn,ms))}
+  function step(i){steps.forEach(function(s,k){s.classList.toggle('act',k===i)})}
+  function reset(){timers.forEach(clearTimeout);timers=[];msgs.forEach(function(m){m.classList.remove('vis')});
+    build.classList.remove('on');parts.forEach(function(p){p.classList.remove('in')});st.textContent='онлайн'}
+  function play(){
+    reset();step(0);
+    at(400,function(){msgs[0].classList.add('vis')});
+    at(1200,function(){st.textContent='жазып жатыр…'});
+    at(2200,function(){st.textContent='онлайн';msgs[1].classList.add('vis')});
+    at(3400,function(){step(1);msgs[2].classList.add('vis')});
+    at(4100,function(){msgs[3].classList.add('vis')});
+    at(5200,function(){st.textContent='жазып жатыр…'});
+    at(6000,function(){st.textContent='онлайн';msgs[4].classList.add('vis')});
+    at(7200,function(){step(2);build.classList.add('on')});
+    parts.forEach(function(p,i){at(7900+i*(i===parts.length-1?520:380),function(){p.classList.add('in');if(i===parts.length-1)step(3)})});
+    at(14500,function(){if(running)play()});
+  }
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+    msgs.forEach(function(m){m.classList.add('vis')});step(3);return;
+  }
+  new IntersectionObserver(function(es){var v=es[es.length-1].isIntersecting;
+    if(v&&!running){running=true;play()}else if(!v&&running){running=false;reset()}
+  },{threshold:.35}).observe(ph);
+})();
+
+/* ===== live mini-site builder ===== */
+(function(){
+  var KIND={
+    shop:{t:'Дүкен',tag:'Сапалы тауар — қолжетімді баға',it:['Жаңа','Хит','Жеңілдік']},
+    cafe:{t:'Кафе',tag:'Әр тостаған — ерекше сәт',it:['Кофе','Десерт','Таңғы ас']},
+    salon:{t:'Сұлулық салоны',tag:'Сіздің әсемдігіңіз — біздің өнер',it:['Шаш','Маникюр','Макияж']},
+    barber:{t:'Барбершоп',tag:'Стиль мен сенімділік',it:['Қию','Сақал','Күтім']}
+  };
+  var name=document.getElementById('t-name');if(!name)return;
+  var mini=document.getElementById('mini'),kind='shop',col=document.querySelector('#t-col .on');
+  function $(id){return document.getElementById(id)}
+  function draw(pop){
+    var n=name.value.trim()||'Сіздің бренд',k=KIND[kind];
+    $('m-name').textContent=n;$('m-brand').textContent=n;$('m-logo').textContent=n.charAt(0).toUpperCase();
+    $('m-kind').textContent=k.t;$('m-tag').textContent=k.tag;
+    $('m-items').innerHTML=k.it.map(function(x){return '<div><i></i>'+x+'</div>'}).join('');
+    mini.style.setProperty('--acc',col.dataset.c);
+    if(pop){mini.classList.remove('pop');void mini.offsetWidth;mini.classList.add('pop')}
+  }
+  name.addEventListener('input',function(){draw(false)});
+  document.querySelectorAll('#t-kind .chip').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#t-kind .chip').forEach(function(x){x.classList.remove('on')});b.classList.add('on');kind=b.dataset.k;draw(true)})});
+  document.querySelectorAll('#t-col button').forEach(function(b){b.addEventListener('click',function(){
+    document.querySelectorAll('#t-col button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');col=b;draw(true)})});
+  $('t-go').addEventListener('click',function(){
+    var n=name.value.trim()||'менің бизнесім';
+    var msg='Сәлеметсіз бе, Диярбек! «'+n+'» үшін сайт керек.\nСала: '+KIND[kind].t+'\nТүсі: '+col.dataset.n;
+    window.open('https://wa.me/77079840416?text='+encodeURIComponent(msg),'_blank');
+  });
+  draw(false);
+})();
+</script>
+
+<!-- ===== 3D showcase: Three.js loads only when this section is near ===== -->
+<script type="module">
+const sec=document.getElementById('show');
+const P=[
+  ['DOS Мебель','Жиһаз фабрикасы · Алматы','dos_mebel_preview.webp','dos-mebel'],
+  ['Perde Mariam','Перде салоны · Астана','shot_perde_mariam.webp','perde.mariam'],
+  ['Luxe Furnitura','Онлайн дүкен','shot_luxe-furnitura.webp','luxe-furnitura'],
+  ['Printspace.kz','Полиграфия · Түркістан','shot_printspace-kz.webp','printspace-kz'],
+  ['LUXE Barbershop','Барбершоп · Кентау','shot_luxe-barbershop-kentau.webp','luxe-barbershop-kentau'],
+  ['Qazaqstan Heritage','Интерактивті карта','shot_qazaqstan-heritage.webp','qazaqstan-heritage']
+];
+const $=id=>document.getElementById(id);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+let prog=0,idx=0,onIndex=null;
+
+/* text side: works even without WebGL */
+function measure(){
+  const r=sec.getBoundingClientRect();
+  prog=clamp(-r.top/(r.height-innerHeight));
+  $('hint').style.opacity=prog>.02?0:1;
+  const i=Math.min(P.length-1,Math.floor(clamp((prog-.14)/.86)*P.length));
+  if(i!==idx){
+    idx=i;const b=$('sp-body');b.classList.add('swap');
+    setTimeout(()=>{const p=P[i];$('sp-name').textContent=p[0];$('sp-meta').textContent=p[1];
+      $('sp-link').href='https://diyorbekashurbekov.github.io/'+p[3]+'/';b.classList.remove('swap')},220);
+    $('sp-i').textContent='0'+(i+1);
+    [...$('sp-dots').children].forEach((d,k)=>d.classList.toggle('on',k===i));
+    onIndex&&onIndex(i);
+  }
+}
+addEventListener('scroll',measure,{passive:true});addEventListener('resize',measure);measure();
+
+const ok=!matchMedia('(prefers-reduced-motion: reduce)').matches&&!(navigator.connection&&navigator.connection.saveData);
+let started=false;
+/* wait until the first screen is fully loaded, then use idle time — hero is never slowed down */
+const whenIdle=f=>{const go=()=>(window.requestIdleCallback||setTimeout)(f,{timeout:1500});document.readyState==='complete'?go():addEventListener('load',go,{once:true})};
+function boot(){if(started||!ok)return;started=true;whenIdle(()=>init().catch(e=>console.warn('3D off:',e)))}
+if(ok){
+  const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();boot()}},{rootMargin:'120% 0px'});
+  io.observe(sec);
+  /* backup trigger: plain scroll position */
+  const near=()=>{if(sec.getBoundingClientRect().top<innerHeight*2.2){removeEventListener('scroll',near);boot()}};
+  addEventListener('scroll',near,{passive:true});near();
+}
+
+async function init(){
+  const [THREE,{GLTFLoader},{RoomEnvironment},{MeshoptDecoder}]=await Promise.all([
+    import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/environments/RoomEnvironment.js'),
+    import('three/addons/libs/meshopt_decoder.module.js')]);
+  const stage=$('stage'),canvas=$('gl'),mobile=innerWidth<900;
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:!mobile,alpha:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.5:2));
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  const scene=new THREE.Scene();
+  const pm=new THREE.PMREMGenerator(renderer);
+  scene.environment=pm.fromScene(new RoomEnvironment(),.04).texture;
+  scene.environmentIntensity=.55;
+  const key=new THREE.DirectionalLight(0xfff1dd,1.4);key.position.set(-4,6,5);
+  const rim=new THREE.DirectionalLight(0xffc773,3);rim.position.set(5,3,-5);
+  scene.add(key,rim);
+  const cam=new THREE.PerspectiveCamera(28,1,.1,100);
+
+  const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('models/devices.glb');
+  const root=gltf.scene;scene.add(root);
+  const lid=root.getObjectByName('Lid'),phone=root.getObjectByName('Phone');
+  const lapMat=new THREE.MeshBasicMaterial({toneMapped:false,color:0x111111});
+  const phMat=new THREE.MeshBasicMaterial({toneMapped:false,color:0x111111});
+  root.getObjectByName('LaptopScreen').material=lapMat;
+  root.getObjectByName('PhoneScreen').material=phMat;
+  const phBase=phone.position.clone();
+  const center=new THREE.Vector3(.35,.95,0);
+
+  /* screenshots -> textures, cover-cropped on a canvas */
+  const cache={};
+  function tex(file,w,h,left){
+    const k=file+w;if(cache[k])return cache[k];
+    return cache[k]=new Promise(res=>{const im=new Image();im.decoding='async';im.onload=()=>{
+      const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
+      const s=Math.max(w/im.width,h/im.height),dw=im.width*s,dh=im.height*s;
+      g.drawImage(im,left?0:(w-dw)/2,(h-dh)/2,dw,dh);
+      const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.flipY=false;
+      t.anisotropy=4;res(t)};im.src='images/'+file});
+  }
+  let flash=0;
+  async function show(i){
+    const [a,b]=await Promise.all([tex(P[i][2],1280,800),tex(P[i][2],420,880,true)]);
+    if(i!==idx)return;
+    lapMat.map=a;phMat.map=b;lapMat.needsUpdate=phMat.needsUpdate=true;flash=1;
+  }
+  onIndex=show;show(idx);
+  P.forEach((p,i)=>setTimeout(()=>{tex(p[2],1280,800);tex(p[2],420,880,true)},800+i*300));
+
+  /* size */
+  function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+  new ResizeObserver(size).observe(stage);size();
+
+  /* pointer parallax (desktop) */
+  let mx=0,my=0,tx=0,ty=0;
+  addEventListener('pointermove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5},{passive:true});
+
+  let visible=true,looping=false,sm=0,first=true;
+  const start=()=>{if(!looping){looping=true;loop()}};
+  new IntersectionObserver(es=>{visible=es[es.length-1].isIntersecting;if(visible)start()}).observe(sec);
+  const ease=t=>1-Math.pow(1-t,3);
+  function loop(){
+    if(!visible){looping=false;return}requestAnimationFrame(loop);
+    sm+=(prog-sm)*.09;mx+=(tx-mx)*.06;my+=(ty-my)*.06;
+    const open=ease(clamp(sm/.14));
+    lid.rotation.set(THREE.MathUtils.lerp(Math.PI/2,-.21,open),0,0);
+    const t=performance.now()/1000;
+    phone.position.set(phBase.x+(1-open)*.7,phBase.y-(1-open)*.35+Math.sin(t*1.4)*.03,phBase.z+(1-open)*.3);
+    const az=.62-sm*.75+mx*.25,el=.42-open*.1-sm*.06+my*.12,d=Math.max(7.6,2.5/(.2493*cam.aspect))-open*.5; /* fit both devices to any screen shape */
+    cam.position.set(center.x+Math.sin(az)*Math.cos(el)*d,center.y+Math.sin(el)*d,center.z+Math.cos(az)*Math.cos(el)*d);
+    cam.lookAt(center);
+    const lum=Math.min(1,open*1.2)*(1-flash*.75);flash*=.9;
+    lapMat.color.setScalar(lapMat.map?lum:.05);phMat.color.setScalar(phMat.map?1-flash*.75:.05);
+    renderer.render(scene,cam);
+    if(first){first=false;stage.classList.add('ready')}
+  }
+  start();
+}
 </script>
 </body>
 </html>
