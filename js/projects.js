@@ -124,6 +124,9 @@ const mobileView = () => innerWidth < 900;
 const target = () => mobileView() ? [q('.pv-scr'), q('.pv-m')] : [q('.pv-view'), q('.pv-d')];
 const decode = im => (im.complete && im.naturalHeight) ? Promise.resolve() : new Promise(r => { im.onload = r; im.onerror = r; });
 
+/* the transition can never lock the page: any error or a stall longer than 2.5 s just skips it */
+const safe = p => Promise.race([p.catch(e => console.warn('shatter skipped:', e)), new Promise(r => setTimeout(r, 2500))]);
+
 async function open(i, ev) {
   if (busy) return; busy = true; cur = i;
   const c = cards[i];
@@ -131,26 +134,48 @@ async function open(i, ev) {
   document.documentElement.classList.add('pv-lock');
   pv.classList.add('on');                       // measurable, content still invisible
   const [to, toImg] = target();
-  await decode(toImg);
-  if (reduce) { pv.classList.add('open'); busy = false; return; }
   const from = c.querySelector('.shot');
-  const click = ev && ev.clientX != null ? [ev.clientX, ev.clientY] : null;
-  from.style.visibility = 'hidden';
-  await shatter(from, to, c.querySelector('.shot > img'), toImg, click, false);
-  pv.classList.add('open'); busy = false;
+  try {
+    if (!reduce) {
+      const click = ev && ev.clientX != null ? [ev.clientX, ev.clientY] : null;
+      from.style.visibility = 'hidden';
+      // starts on this very tap — the big screenshot is swapped in mid-flight if it's still loading
+      await safe(shatter(from, to, c.querySelector('.shot > img'), toImg, click, false));
+    }
+  } finally { pv.classList.add('open'); busy = false; }
 }
 async function close() {
   if (busy || cur < 0) return; busy = true;
   const c = cards[cur], from = c.querySelector('.shot');
-  if (reduce) { pv.classList.remove('open', 'on'); document.documentElement.classList.remove('pv-lock'); busy = false; return; }
-  // bring the card into view under the modal so the shards have somewhere to land
-  const r = from.getBoundingClientRect();
-  if (r.bottom < 0 || r.top > innerHeight) c.scrollIntoView({ block: 'center', behavior: 'instant' });
-  const [to, toImg] = target(); toImg.style.animation = 'none';
-  pv.classList.remove('open');
-  await shatter(from, to, c.querySelector('.shot > img'), toImg, null, true);
-  pv.classList.remove('on'); document.documentElement.classList.remove('pv-lock');
-  from.style.visibility = ''; busy = false; cur = -1;
+  try {
+    if (!reduce) {
+      // bring the card into view under the modal so the shards have somewhere to land
+      const r = from.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) c.scrollIntoView({ block: 'center', behavior: 'instant' });
+      const [to, toImg] = target(); toImg.style.animation = 'none';
+      pv.classList.remove('open');
+      await safe(shatter(from, to, c.querySelector('.shot > img'), toImg, null, true));
+    }
+  } finally {
+    pv.classList.remove('open', 'on'); document.documentElement.classList.remove('pv-lock');
+    from.style.visibility = ''; busy = false; cur = -1;
+  }
+}
+
+/* warm-up: big screenshots of cards the visitor is looking at, and Three.js itself, load ahead of the tap */
+if (!reduce) {
+  const pre = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    pre.unobserve(e.target);
+    const id = idOf(e.target); if (!id) return;
+    const im = new Image(); im.decoding = 'async'; im.fetchPriority = 'low';
+    im.src = `images/scroll/${mobileView() ? 'm' : 'd'}_${id}.webp`;
+  }), { rootMargin: '0px 0px 25% 0px' });
+  const go = () => cards.forEach(c => pre.observe(c));
+  document.readyState === 'complete' ? setTimeout(go, 1500) : addEventListener('load', () => setTimeout(go, 1500), { once: true });
+  const warm = () => { getGL().catch(() => {}); };
+  document.getElementById('projects').addEventListener('pointerover', warm, { once: true });
+  document.getElementById('projects').addEventListener('touchstart', warm, { once: true, passive: true });
 }
 function step(dir) {
   if (busy || cur < 0) return;
@@ -220,21 +245,42 @@ void main(){
 
 /* uv crop that reproduces CSS object-fit: cover (top-anchored when `top`) */
 function cover(img, w, h, top) {
-  const iw = img.naturalWidth, ih = img.naturalHeight, s = Math.max(w / iw, h / ih);
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  if (!iw || !ih || !w || !h) return [0, 0, 1, 1];
+  const s = Math.max(w / iw, h / ih);
   const cw = w / s / iw, ch = h / s / ih;
   return [(1 - cw) / 2, top ? 0 : (1 - ch) / 2, cw, ch];
 }
 
-async function shatter(fromEl, toEl, imgA, imgB, click, reverse) {
-  THREE = THREE || await import('three');
-  const W = innerWidth, H = innerHeight, mobile = W < 700;
-  const canvas = document.createElement('canvas'); canvas.className = 'pv-gl';
-  document.body.append(canvas);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); renderer.setSize(W, H, false);
-  const fov = 30, dist = H / 2 / Math.tan(THREE.MathUtils.degToRad(fov / 2));
-  const cam = new THREE.PerspectiveCamera(fov, W / H, 10, dist * 3); cam.position.z = dist;
-
+/* one WebGL layer, created once (first hover/touch on the section) and reused for every open/close:
+   no context creation or shader compilation at tap time */
+let GL = null;
+function getGL() {
+  return GL = GL || (async () => {
+    THREE = THREE || await import('three');
+    const mobile = innerWidth < 700;
+    const canvas = document.createElement('canvas'); canvas.className = 'pv-gl';
+    document.body.append(canvas);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !mobile, alpha: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.25 : 1.5));
+    const geo = shardGeometry(mobile);
+    const U = {
+      uA: { value: new THREE.Vector4() }, uB: { value: new THREE.Vector4() },
+      uTexA: { value: null }, uTexB: { value: null },
+      uCropA: { value: new THREE.Vector4(0, 0, 1, 1) }, uCropB: { value: new THREE.Vector4(0, 0, 1, 1) },
+      uView: { value: new THREE.Vector2() }, uT: { value: 0 }, uClick: { value: new THREE.Vector2() },
+    };
+    const mat = new THREE.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false;
+    const scene = new THREE.Scene(); scene.add(mesh);
+    const cam = new THREE.PerspectiveCamera(30, 1, 10, 10000);
+    // compile the shader now with a 1x1 placeholder so the first tap doesn't pay for it
+    const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1); blank.needsUpdate = true;
+    U.uTexA.value = U.uTexB.value = blank; renderer.compile(scene, cam);
+    return { renderer, canvas, U, scene, cam, mobile };
+  })();
+}
+function shardGeometry(mobile) {
   /* jittered grid → two triangles per cell, each triangle is a shard */
   const cols = mobile ? 12 : 20, rows = mobile ? 9 : 13, V = [];
   for (let y = 0; y <= rows; y++) for (let x = 0; x <= cols; x++) {
@@ -256,24 +302,35 @@ async function shatter(fromEl, toEl, imgA, imgB, click, reverse) {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
   geo.setAttribute('aC', new THREE.Float32BufferAttribute(C, 2));
   geo.setAttribute('aR', new THREE.Float32BufferAttribute(R, 4));
+  return geo;
+}
+
+const ready = im => im.complete && im.naturalWidth > 0;
+async function shatter(fromEl, toEl, imgA, imgB, click, reverse) {
+  const { renderer, canvas, U, scene, cam, mobile } = await getGL();
+  const W = innerWidth, H = innerHeight;
+  renderer.setSize(W, H, false);
+  cam.aspect = W / H; cam.position.z = H / 2 / Math.tan(THREE.MathUtils.degToRad(15)); cam.updateProjectionMatrix();
 
   const rect = el => { const r = el.getBoundingClientRect(); return new THREE.Vector4(r.left, r.top, r.width, r.height); };
   const tex = im => { const t = new THREE.Texture(im); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.needsUpdate = true; return t; };
   const rA = rect(fromEl), rB = rect(toEl);
-  const texA = tex(imgA), texB = tex(imgB);
-  const U = {
-    uA: { value: reverse ? rB : rA }, uB: { value: reverse ? rA : rB },
-    uTexA: { value: reverse ? texB : texA }, uTexB: { value: reverse ? texA : texB },
-    uCropA: { value: new THREE.Vector4(...(reverse ? cover(imgB, rB.z, rB.w, true) : cover(imgA, rA.z, rA.w))) },
-    uCropB: { value: new THREE.Vector4(...(reverse ? cover(imgA, rA.z, rA.w) : cover(imgB, rB.z, rB.w, true))) },
-    uView: { value: new THREE.Vector2(W, H) }, uT: { value: 0 },
-    uClick: { value: new THREE.Vector2(...(click || [(reverse ? rB : rA).x + (reverse ? rB : rA).z / 2, (reverse ? rB : rA).y + (reverse ? rB : rA).w / 2])) },
-  };
-  const mesh = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: U, vertexShader: VS, fragmentShader: FS, side: THREE.DoubleSide }));
-  mesh.frustumCulled = false;
-  const scene = new THREE.Scene(); scene.add(mesh);
+  // start side / end side (reverse = closing: modal → card)
+  const sImg = reverse ? imgB : imgA, eImg = reverse ? imgA : imgB, sR = reverse ? rB : rA, eR = reverse ? rA : rB;
+  const sTop = reverse, eTop = !reverse;
+  // a card that just scrolled into view may still be loading its picture: give it 150 ms, never more
+  if (!ready(sImg)) await Promise.race([new Promise(r => sImg.addEventListener('load', r, { once: true })), new Promise(r => setTimeout(r, 150))]);
+  const texS = ready(sImg) ? tex(sImg) : null; let texE = null;
+  U.uA.value.copy(sR); U.uB.value.copy(eR);
+  U.uTexA.value = texS || U.uTexA.value; U.uCropA.value.set(...cover(sImg, sR.z, sR.w, sTop));
+  const useEnd = () => { texE = tex(eImg); U.uTexB.value = texE; U.uCropB.value.set(...cover(eImg, eR.z, eR.w, eTop)); };
+  if (ready(eImg)) useEnd();
+  else { U.uTexB.value = U.uTexA.value; U.uCropB.value.copy(U.uCropA.value); eImg.addEventListener('load', useEnd, { once: true }); }
+  U.uView.value.set(W, H);
+  U.uClick.value.set(...(click || [sR.x + sR.z / 2, sR.y + sR.w / 2]));
 
-  const DUR = mobile ? 1000 : 1150;
+  canvas.classList.add('run');
+  const DUR = mobile ? 950 : 1150;
   await new Promise(done => {
     const t0 = performance.now();
     (function frame(now) {
@@ -282,9 +339,10 @@ async function shatter(fromEl, toEl, imgA, imgB, click, reverse) {
       if (t < 1) requestAnimationFrame(frame); else done();
     })(t0);
   });
-  // hand over to the DOM on the next frame, then free the GPU
+  eImg.removeEventListener('load', useEnd);
+  // hand over to the DOM on the next frame, then hide the layer and free the two textures
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    geo.dispose(); mesh.material.dispose(); texA.dispose(); texB.dispose();
-    renderer.dispose(); renderer.forceContextLoss(); canvas.remove();
+    canvas.classList.remove('run'); renderer.clear();
+    texS && texS.dispose(); texE && texE.dispose();
   }));
 }

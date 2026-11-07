@@ -220,7 +220,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .pv.on{display:block}
 .pv-bg{position:absolute;inset:0;background:rgba(10,9,8,.94);opacity:0;animation:pvfade .5s var(--ease) forwards}
 @keyframes pvfade{to{opacity:1}}
-.pv-gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:260;pointer-events:none}
+.pv-gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:260;pointer-events:none;display:none}
+.pv-gl.run{display:block}
+.card:active .shot{transform:scale(.97)}
 .pv-in{position:relative;height:100%;max-width:1320px;margin:0 auto;padding:clamp(70px,9vh,110px) 32px 40px;display:grid;grid-template-columns:1.55fr .75fr;gap:clamp(28px,4vw,64px);align-items:center;opacity:0;transition:opacity .35s var(--ease)}
 .pv.open .pv-in{opacity:1}
 .pv-in.swap{opacity:0!important}
@@ -842,7 +844,7 @@ document.getElementById('order').addEventListener('click',function(){
 <!-- 3D showcase (Blender model + Three.js) — see js/showcase.js -->
 <script type="module" src="js/showcase.js?v=11071448p"></script>
 <!-- Blender-fractured gold shards behind the whole page — see js/fx.js -->
-<script type="module" src="js/projects.js?v=11071448p"></script>
+<script type="module" src="js/projects.js?v=11071504q"></script>
 <script type="module" src="js/fx.js?v=11071452f"></script>
 <script>
 /* card tilt: follows the cursor, desktop only */
