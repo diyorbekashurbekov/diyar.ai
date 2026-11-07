@@ -772,12 +772,13 @@ document.getElementById('order').addEventListener('click',function(){
 <script type="module">
 const sec=document.getElementById('show');
 const P=[
-  ['DOS Мебель','Жиһаз фабрикасы · Алматы','dos_mebel_preview.webp','dos-mebel'],
-  ['Perde Mariam','Перде салоны · Астана','shot_perde_mariam.webp','perde.mariam'],
-  ['Luxe Furnitura','Онлайн дүкен','shot_luxe-furnitura.webp','luxe-furnitura'],
-  ['Printspace.kz','Полиграфия · Түркістан','shot_printspace-kz.webp','printspace-kz'],
-  ['LUXE Barbershop','Барбершоп · Кентау','shot_luxe-barbershop-kentau.webp','luxe-barbershop-kentau'],
-  ['Qazaqstan Heritage','Интерактивті карта','shot_qazaqstan-heritage.webp','qazaqstan-heritage']
+  /* name, meta, desktop shot (laptop), url slug, real mobile shot (phone) */
+  ['DOS Мебель','Жиһаз фабрикасы · Алматы','dos_mebel_preview.webp','dos-mebel','m_dos-mebel.webp'],
+  ['Perde Mariam','Перде салоны · Астана','shot_perde_mariam.webp','perde.mariam','m_perde-mariam.webp'],
+  ['Luxe Furnitura','Онлайн дүкен','shot_luxe-furnitura.webp','luxe-furnitura','m_luxe-furnitura.webp'],
+  ['Printspace.kz','Полиграфия · Түркістан','shot_printspace-kz.webp','printspace-kz','m_printspace-kz.webp'],
+  ['LUXE Barbershop','Барбершоп · Кентау','shot_luxe-barbershop-kentau.webp','luxe-barbershop-kentau','m_luxe-barbershop.webp'],
+  ['Amanat Interior','Интерьер · Астана','shot_amanat_interior.webp','amanat_interior','m_amanat-interior.webp']
 ];
 const $=id=>document.getElementById(id);
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
@@ -854,12 +855,12 @@ async function init(){
   }
   let flash=0;
   async function show(i){
-    const [a,b]=await Promise.all([tex(P[i][2],1280,800),tex(P[i][2],420,880,true)]);
+    const [a,b]=await Promise.all([tex(P[i][2],1280,800),tex(P[i][4],540,1170,true)]);
     if(i!==idx)return;
     lapMat.map=a;phMat.map=b;lapMat.needsUpdate=phMat.needsUpdate=true;flash=1;
   }
   onIndex=show;show(idx);
-  P.forEach((p,i)=>setTimeout(()=>{tex(p[2],1280,800);tex(p[2],420,880,true)},800+i*300));
+  P.forEach((p,i)=>setTimeout(()=>{tex(p[2],1280,800);tex(p[4],540,1170,true)},800+i*300));
 
   /* size */
   function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
