@@ -197,6 +197,53 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .shot{transform-style:preserve-3d;transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
 .card:hover .shot{box-shadow:0 30px 60px -25px rgba(18,17,16,.45)}
 
+/* ===== LIVE CARDS (js/projects.js) ===== */
+.live{position:absolute;inset:0;z-index:1;overflow:hidden;opacity:0;transition:opacity .45s var(--ease);border-radius:inherit;background:#e6e1d6}
+.live img{width:100%;height:auto;max-width:none;transform:translate3d(0,0,0);will-change:transform}
+.card.playing .live{opacity:1}
+.card.playing .shot > img{transform:none}
+.shot::after{content:'';position:absolute;left:14px;bottom:14px;z-index:2;padding:6px 11px;border-radius:99px;background:rgba(15,14,12,.78);color:var(--cream);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;opacity:0;transition:opacity .35s}
+.card.playing .shot::after{content:'Тірі көрініс';opacity:1}
+
+/* ===== PREVIEW MODAL ===== */
+.pv-lock,.pv-lock body{overflow:hidden}
+.pv{position:fixed;inset:0;z-index:250;display:none}
+.pv.on{display:block}
+.pv-bg{position:absolute;inset:0;background:rgba(10,9,8,.94);opacity:0;animation:pvfade .5s var(--ease) forwards}
+@keyframes pvfade{to{opacity:1}}
+.pv-gl{position:fixed;inset:0;width:100vw;height:100vh;z-index:260;pointer-events:none}
+.pv-in{position:relative;height:100%;max-width:1320px;margin:0 auto;padding:clamp(70px,9vh,110px) 32px 40px;display:grid;grid-template-columns:1.55fr .75fr;gap:clamp(28px,4vw,64px);align-items:center;opacity:0;transition:opacity .35s var(--ease)}
+.pv.open .pv-in{opacity:1}
+.pv-in.swap{opacity:0!important}
+.pv-stage{position:relative;padding-right:9%;padding-bottom:6%}
+.pv-browser{border-radius:14px;overflow:hidden;background:#1a1916;box-shadow:0 0 0 1px rgba(200,164,106,.25),0 50px 100px -30px rgba(0,0,0,.8)}
+.pv-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:#201e1a}
+.pv-bar i{width:9px;height:9px;border-radius:50%;background:#3a3731}
+.pv-bar i:first-child{background:#c2415d}.pv-bar i:nth-child(2){background:#c8a46a}.pv-bar i:nth-child(3){background:#3ccf8e}
+.pv-url{margin-left:12px;flex:1;max-width:360px;padding:4px 12px;border-radius:99px;background:#121110;color:var(--dim);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-view{position:relative;aspect-ratio:16/10;overflow:hidden;background:#e6e1d6}
+.pv-view img,.pv-scr img{display:block;width:100%;height:auto;max-width:none;will-change:transform}
+@keyframes pvscroll{to{transform:translate3d(0,var(--d),0)}}
+.pv-phone{position:absolute;right:0;bottom:0;width:22%;aspect-ratio:9/19.5;border-radius:26px;padding:6px;background:#1a1916;box-shadow:0 0 0 1px rgba(200,164,106,.45),0 30px 60px -10px rgba(0,0,0,.85)}
+.pv-scr{width:100%;height:100%;border-radius:20px;overflow:hidden;background:#000}
+.pv-info h3{font-size:clamp(2.2rem,4vw,3.6rem);margin:14px 0 10px}
+.pv-meta{color:var(--dim);font-size:.82rem;letter-spacing:.12em;text-transform:uppercase}
+.pv-cta{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:34px}
+.pv-nav{display:flex;gap:10px;margin-top:40px}
+.pv-nav button,.pv-x{width:48px;height:48px;border-radius:50%;border:1px solid var(--faint);background:transparent;color:var(--cream);font-size:1rem;cursor:pointer;transition:border-color .3s,background .3s}
+.pv-nav button:hover,.pv-x:hover{border-color:var(--gold);background:rgba(200,164,106,.12)}
+.pv-x{position:absolute;top:22px;right:22px;z-index:3}
+@media (max-width:900px){
+  .pv-in{grid-template-columns:1fr;align-content:start;gap:22px;padding:76px 20px 28px;overflow-y:auto}
+  .pv-stage{padding:0}
+  .pv-browser{display:none}
+  .pv-phone{position:relative;display:block;width:min(52vw,230px);margin:0 auto;border-radius:30px;padding:7px}
+  .pv-scr{border-radius:23px}
+  .pv-info h3{margin:8px 0 6px}
+  .pv-cta{flex-direction:row;flex-wrap:wrap;margin-top:20px}
+  .pv-nav{margin-top:20px}
+}
+
 /* ===== 3D SHOWCASE ===== */
 .show{position:relative;height:620vh}
 .show-pin{position:sticky;top:0;height:100svh;overflow:hidden;display:flex;align-items:center}
@@ -781,6 +828,7 @@ document.getElementById('order').addEventListener('click',function(){
 <!-- 3D showcase (Blender model + Three.js) — see js/showcase.js -->
 <script type="module" src="js/showcase.js?v=11071429b"></script>
 <!-- Blender-fractured gold shards behind the whole page — see js/fx.js -->
+<script type="module" src="js/projects.js?v=11071442m"></script>
 <script type="module" src="js/fx.js?v=11071425"></script>
 <script>
 /* card tilt: follows the cursor, desktop only */
